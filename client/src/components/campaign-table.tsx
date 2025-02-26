@@ -10,6 +10,7 @@ import {
 import { type Campaign } from "@shared/schema";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import BidOptimizer from "./bid-optimizer";
+import CampaignForecast from "./campaign-forecast"; // Import the new component
 
 interface CampaignTableProps {
   campaigns: Campaign[];
@@ -79,8 +80,9 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
               </TableRow>
               {expandedRows.has(campaign.id) && (
                 <TableRow key={`${campaign.id}-expanded`}>
-                  <TableCell colSpan={9} className="p-4">
+                  <TableCell colSpan={9} className="p-4 space-y-4">
                     <BidOptimizer campaignId={campaign.id} />
+                    <CampaignForecast campaign={campaign} />
                   </TableCell>
                 </TableRow>
               )}
