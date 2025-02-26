@@ -5,6 +5,7 @@ import KPICard from "@/components/kpi-card";
 import PerformanceChart from "@/components/performance-chart";
 import CampaignTable from "@/components/campaign-table";
 import { DollarSign, TrendingUp, Users, Activity } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle"; // Added import
 
 type CampaignMetrics = {
   spend: number;
@@ -17,6 +18,7 @@ type CampaignMetrics = {
 };
 
 export default function Dashboard() {
+  const [chartData, setChartData] = useState([]); //This line is not used but remains as it was in the original and modified snippets.
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
   });
@@ -48,9 +50,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-8"> {/* Modified div */}
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <CsvUpload />
+        <ThemeToggle /> {/* Added ThemeToggle component */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LineChart,
@@ -69,6 +68,9 @@ import { BarChart, Bar } from "recharts";
 export default function PerformanceChart({ data, metric, title }: Props) {
   const config = metricConfig[metric as keyof typeof metricConfig];
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [filterType, setFilterType] = useState<"gt" | "lt" | "eq">("eq");
+  const [filterValue, setFilterValue] = useState("");
   const topData = data.slice(-10); // Get last 10 data points
 
   const formatYAxis = (value: number) => {
@@ -82,12 +84,33 @@ export default function PerformanceChart({ data, metric, title }: Props) {
   return (
     <Card className="w-full h-[400px]">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{title}</span>
-          <span className="text-sm font-normal text-muted-foreground">
-            {config.label}
-          </span>
-        </CardTitle>
+        <CardTitle className="font-bold text-lg">{title}</CardTitle>
+        <div className="flex gap-2 mt-2">
+          <select 
+            className="text-sm border rounded px-2 py-1 bg-background"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+          >
+            <option value="asc">Sort Ascending</option>
+            <option value="desc">Sort Descending</option>
+          </select>
+          <select 
+            className="text-sm border rounded px-2 py-1 bg-background"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as 'gt' | 'lt' | 'eq')}
+          >
+            <option value="gt">&gt;</option>
+            <option value="lt">&lt;</option>
+            <option value="eq">=</option>
+          </select>
+          <input
+            type="number"
+            placeholder="Filter value..."
+            className="text-sm border rounded px-2 py-1 bg-background"
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Button 
