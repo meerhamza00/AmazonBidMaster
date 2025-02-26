@@ -40,15 +40,18 @@ export default function Dashboard() {
   const acos = (totalMetrics.spend / totalMetrics.sales) * 100;
 
   // Generate chart data from the campaigns
-  const chartData = campaigns.map(campaign => ({
+  const performanceData = campaigns.map(campaign => ({
     date: campaign.name, // Using campaign name as date for now
     spend: (campaign.metrics as CampaignMetrics).spend,
     sales: (campaign.metrics as CampaignMetrics).sales,
-    acos: (campaign.metrics as CampaignMetrics).acos
+    acos: (campaign.metrics as CampaignMetrics).acos,
+    roas: (campaign.metrics as CampaignMetrics).roas,
+    impressions: (campaign.metrics as CampaignMetrics).impressions,
+    clicks: (campaign.metrics as CampaignMetrics).clicks
   })).sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+    <div className="space-y-8 p-4 md:p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <ThemeToggle />
@@ -77,34 +80,34 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="spend"
           title="Spend Over Time"
         />
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="sales"
           title="Sales Over Time"
         />
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="acos"
           title="ACOS Over Time"
         />
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="roas"
           title="ROAS Over Time"
         />
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="impressions"
           title="Impressions Over Time"
         />
         <PerformanceChart
-          data={chartData}
+          data={performanceData}
           metric="clicks"
           title="Clicks Over Time"
         />

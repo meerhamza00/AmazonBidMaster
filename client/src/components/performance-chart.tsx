@@ -65,6 +65,19 @@ export default function PerformanceChart({ data, metric, title }: {
   title: string 
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        containerRef.current.style.height = `${Math.min(400, window.innerHeight * 0.4)}px`;
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const config = metricConfig[metric];
   const formatYAxis = (value: number) => config.formatter(value);
   const formatTooltip = (value: number) => config.formatter(value);
