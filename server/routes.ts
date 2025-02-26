@@ -51,8 +51,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CSV upload endpoint
   app.post("/api/upload-csv", async (req, res) => {
     try {
+      // Parse CSV file content from FormData
+      const fileContent = req.body.file;
+      if (!fileContent) {
+        return res.status(400).json({ error: "No file content provided" });
+      }
+
+      // Parse CSV rows into array of objects
+      const rows = fileContent.split('\n')
+        .filter(line => line.trim())
+        .map(line => {
+          const [
+            campaignName, portfolioName, campaignState, bid, 
+            adGroupDefaultBid, spend, sales, orders, 
+            clicks, roas, impressions
+          ] = line.split(',').map(val => val.trim());
+          
+          return {
+            campaignName,
+            portfolioName,
+            campaignState,
+            bid: parseFloat(bid),
+            adGroupDefaultBid: parseFloat(adGroupDefaultBid),
+            spend: parseFloat(spend),
+            sales: parseFloat(sales),
+            orders: parseInt(orders),
+            clicks: parseInt(clicks),
+            roas: parseFloat(roas),
+            impressions: parseInt(impressions)
+          };
+        });
+
       const schema = z.array(csvRowSchema);
-      const data = schema.parse(req.body);
+      const data = schema.parse(rows);
 
       // Process CSV data and create campaigns
       const campaigns = data.map(row => {

@@ -19,9 +19,13 @@ export default function CsvUpload() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/upload-csv', {
+      const fileContent = await file.text();
+    const response = await fetch('/api/upload-csv', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ file: fileContent })
       });
 
       if (!response.ok) {
