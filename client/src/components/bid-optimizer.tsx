@@ -24,12 +24,28 @@ export default function BidOptimizer({ campaignId }: { campaignId: number }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Bid Optimization</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          AI-powered bid recommendations based on historical performance metrics and market trends
+        </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="bg-muted p-4 rounded-lg mb-4">
+            <h4 className="text-sm font-medium mb-2">Current Performance Metrics:</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm text-muted-foreground">ACOS</span>
+                <p className="text-lg font-semibold">{prediction.currentMetrics.acos.toFixed(2)}%</p>
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">ROAS</span>
+                <p className="text-lg font-semibold">{prediction.currentMetrics.roas.toFixed(2)}x</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between bg-primary/10 p-3 rounded-lg">
             <span className="text-sm font-medium">Current Bid</span>
-            <span className="text-sm">${prediction.currentBid.toFixed(2)}</span>
+            <span className="text-sm font-bold">${prediction.currentBid.toFixed(2)}</span>
           </div>
 
           <div className="flex items-center justify-between">
