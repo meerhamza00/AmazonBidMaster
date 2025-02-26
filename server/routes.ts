@@ -60,27 +60,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse CSV rows into array of objects
       const rows = fileContent.split('\n')
         .filter(line => line.trim())
-        .map(line => {
-          const [
-            campaignName, portfolioName, campaignState, bid, 
-            adGroupDefaultBid, spend, sales, orders, 
-            clicks, roas, impressions
-          ] = line.split(',').map(val => val.trim());
-          
-          return {
-            campaignName,
-            portfolioName,
-            campaignState,
-            bid: parseFloat(bid),
-            adGroupDefaultBid: parseFloat(adGroupDefaultBid),
-            spend: parseFloat(spend),
-            sales: parseFloat(sales),
-            orders: parseInt(orders),
-            clicks: parseInt(clicks),
-            roas: parseFloat(roas),
-            impressions: parseInt(impressions)
-          };
-        });
+        .map((line, index) => {
+          try {
+            const values = line.split(',').map(val => val.trim());
+            
+            // Skip header row if present
+            if (index === 0 && isNaN(parseFloat(values[3]))) {
+              return null;
+            }
+
+            const [
+              campaignName, portfolioName, campaignState, bid, 
+              adGroupDefaultBid, spend, sales, orders, 
+              clicks, roas, impressions
+            ] = values;
+
+            // Convert and validate numeric values
+            const parsedBid = parseFloat(bid) || 0;
+            const parsedAdGroupBid = parseFloat(adGroupDefaultBid) || 0;
+            const parsedSpend = parseFloat(spend) || 0;
+            const parsedSales = parseFloat(sales) || 0;
+            const parsedOrders = parseInt(orders) || 0;
+            const parsedClicks = parseInt(clicks) || 0;
+            const parsedRoas = parseFloat(roas) || 0;
+            const parsedImpressions = parseInt(impressions) || 0;
+
+            return {
+              campaignName: campaignName || '',
+              portfolioName: portfolioName || '',
+              campaignState: campaignState || '',
+              bid: parsedBid,
+              adGroupDefaultBid: parsedAdGroupBid,
+              spend: parsedSpend,
+              sales: parsedSales,
+              orders: parsedOrders,
+              clicks: parsedClicks,
+              roas: parsedRoas,
+              impressions: parsedImpressions
+            };
+          } catch (error) {
+            console.error(`Error parsing row ${index + 1}:`, error);
+            return null;
+          }
+        })
+        .filter(row => row !== null);
 
       const schema = z.array(csvRowSchema);
       const data = schema.parse(rows);
