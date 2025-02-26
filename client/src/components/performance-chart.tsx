@@ -1,4 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -8,6 +11,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  BarChart,
+  Bar
 } from "recharts";
 
 type ChartData = {
@@ -15,162 +20,87 @@ type ChartData = {
   [key: string]: number | string;
 };
 
-type Props = {
-  data: ChartData[];
-  metric: string;
-  title: string;
-};
-
 const metricConfig = {
   spend: {
     label: "Spend ($)",
-    color: "hsl(var(--success))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => `$${value.toFixed(2)}`,
     gradientId: "spend-gradient",
   },
   sales: {
     label: "Sales ($)",
-    color: "hsl(var(--primary))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => `$${value.toFixed(2)}`,
     gradientId: "sales-gradient",
   },
   acos: {
     label: "ACOS (%)",
-    color: "hsl(var(--destructive))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => `${value.toFixed(2)}%`,
     gradientId: "acos-gradient",
   },
   roas: {
     label: "ROAS",
-    color: "hsl(var(--secondary))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => `${value.toFixed(2)}x`,
     gradientId: "roas-gradient",
   },
   impressions: {
     label: "Impressions",
-    color: "hsl(var(--warning))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => value.toLocaleString(),
     gradientId: "impressions-gradient",
   },
   clicks: {
     label: "Clicks",
-    color: "hsl(var(--info))",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
     formatter: (value: number) => value.toLocaleString(),
     gradientId: "clicks-gradient",
   },
 };
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { BarChart, Bar } from "recharts";
-
-export default function PerformanceChart({ data, metric, title }: Props) {
-  const config = metricConfig[metric as keyof typeof metricConfig];
+export default function PerformanceChart({ data, metric, title }: { 
+  data: ChartData[],
+  metric: keyof typeof metricConfig,
+  title: string 
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [filterType, setFilterType] = useState<"gt" | "lt" | "eq">("eq");
-  const [filterValue, setFilterValue] = useState("");
-  const topData = data.slice(-10); // Get last 10 data points
-
-  const formatYAxis = (value: number) => {
-    return config.formatter(value);
-  };
-
-  const formatTooltip = (value: number) => {
-    return [config.formatter(value), config.label];
-  };
+  const config = metricConfig[metric];
+  const formatYAxis = (value: number) => config.formatter(value);
+  const formatTooltip = (value: number) => config.formatter(value);
 
   return (
-    <Card className="w-full h-[400px]">
+    <Card className="w-full min-h-[400px] mb-6">
       <CardHeader>
         <CardTitle className="font-bold text-lg">{title}</CardTitle>
-        <div className="flex gap-2 mt-2">
-          <select 
-            className="text-sm border rounded px-2 py-1 bg-background"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-          >
-            <option value="asc">Sort Ascending</option>
-            <option value="desc">Sort Descending</option>
-          </select>
-          <select 
-            className="text-sm border rounded px-2 py-1 bg-background"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as 'gt' | 'lt' | 'eq')}
-          >
-            <option value="gt">&gt;</option>
-            <option value="lt">&lt;</option>
-            <option value="eq">=</option>
-          </select>
-          <input
-            type="number"
-            placeholder="Filter value..."
-            className="text-sm border rounded px-2 py-1 bg-background"
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
-          />
-        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="h-[300px] md:h-[350px]">
         <Button 
           variant="outline" 
           size="sm" 
-          className="mb-2"
+          className="mb-4"
           onClick={() => setIsExpanded(true)}
         >
           View Full Data
         </Button>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={topData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <defs>
-              <linearGradient id={config.gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={config.color} stopOpacity={0.2}/>
-                <stop offset="95%" stopColor={config.color} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              opacity={0.1}
-              vertical={false}
-              stroke="hsl(var(--border))"
-            />
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
             <XAxis
               dataKey="date"
               angle={-45}
               textAnchor="end"
               height={60}
               interval={0}
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-              stroke="hsl(var(--border))"
+              tick={{ fontSize: 11 }}
             />
             <YAxis
               tickFormatter={formatYAxis}
               width={80}
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-              stroke="hsl(var(--border))"
+              tick={{ fontSize: 11 }}
             />
-            <Tooltip
-              formatter={formatTooltip}
-              labelFormatter={(label) => `Date: ${label}`}
-              contentStyle={{
-                backgroundColor: "hsl(var(--background))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "6px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-              cursor={{ stroke: "hsl(var(--muted))" }}
-            />
-            <Legend
-              wrapperStyle={{
-                paddingTop: "20px",
-                fontSize: "12px",
-                color: "hsl(var(--muted-foreground))"
-              }}
-            />
+            <Tooltip formatter={formatTooltip} />
+            <Legend />
             <Bar
               dataKey={metric}
               name={config.label}
@@ -181,36 +111,38 @@ export default function PerformanceChart({ data, metric, title }: Props) {
         </ResponsiveContainer>
 
         <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-          <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogContent className="max-w-4xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{title} - Full View</DialogTitle>
             </DialogHeader>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  interval={0}
-                  tick={{ fontSize: 11 }}
-                />
-                <YAxis
-                  tickFormatter={formatYAxis}
-                  width={80}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip formatter={formatTooltip} />
-                <Legend />
-                <Bar
-                  dataKey={metric}
-                  name={config.label}
-                  fill={config.color}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[calc(80vh-100px)]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <YAxis
+                    tickFormatter={formatYAxis}
+                    width={80}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <Tooltip formatter={formatTooltip} />
+                  <Legend />
+                  <Bar
+                    dataKey={metric}
+                    name={config.label}
+                    fill={config.color}
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </DialogContent>
         </Dialog>
       </CardContent>
