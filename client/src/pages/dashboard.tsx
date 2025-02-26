@@ -48,13 +48,13 @@ export default function Dashboard() {
   })).sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center mb-8"> {/* Modified div */}
+    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <ThemeToggle /> {/* Added ThemeToggle component */}
+        <ThemeToggle />
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <CsvUpload />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KPICard
           title="Total Spend"
           value={`$${totalMetrics.spend.toFixed(2)}`}

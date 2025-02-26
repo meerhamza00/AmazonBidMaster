@@ -79,19 +79,21 @@ export default function CsvUpload() {
   };
 
   return (
-    <Card>
+    <Card className="w-full mb-8">
       <CardHeader>
         <CardTitle>Upload Campaign Data</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
           <Button
-            variant="outline"
+            variant="default"
+            size="lg"
             disabled={isUploading}
             onClick={() => document.getElementById('csv-upload')?.click()}
+            className="w-full sm:w-auto"
           >
-            <Upload className={`mr-2 h-4 w-4 ${isUploading ? 'animate-spin' : ''}`} />
-            {isUploading ? 'Uploading...' : 'Select CSV File'}
+            <Upload className={`mr-2 h-5 w-5 ${isUploading ? 'animate-spin' : ''}`} />
+            {isUploading ? 'Uploading...' : 'Upload CSV File'}
           </Button>
           <input
             id="csv-upload"
