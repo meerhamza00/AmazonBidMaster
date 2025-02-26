@@ -61,8 +61,15 @@ const metricConfig = {
   },
 };
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { BarChart, Bar } from "recharts";
+
 export default function PerformanceChart({ data, metric, title }: Props) {
   const config = metricConfig[metric as keyof typeof metricConfig];
+  const [isExpanded, setIsExpanded] = useState(false);
+  const topData = data.slice(-10); // Get last 10 data points
 
   const formatYAxis = (value: number) => {
     return config.formatter(value);
@@ -83,9 +90,17 @@ export default function PerformanceChart({ data, metric, title }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mb-2"
+          onClick={() => setIsExpanded(true)}
+        >
+          View Full Data
+        </Button>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={data}
+          <BarChart
+            data={topData}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <defs>
@@ -133,22 +148,48 @@ export default function PerformanceChart({ data, metric, title }: Props) {
                 color: "hsl(var(--muted-foreground))"
               }}
             />
-            <Line
-              type="monotone"
+            <Bar
               dataKey={metric}
               name={config.label}
-              stroke={config.color}
-              strokeWidth={2}
-              dot={{ r: 3, strokeWidth: 2, fill: "hsl(var(--background))" }}
-              activeDot={{
-                r: 5,
-                strokeWidth: 2,
-                fill: config.color
-              }}
-              fill={`url(#${config.gradientId})`}
+              fill={config.color}
+              radius={[4, 4, 0, 0]}
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
+
+        <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+          <DialogContent className="max-w-4xl h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>{title} - Full View</DialogTitle>
+            </DialogHeader>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis
+                  tickFormatter={formatYAxis}
+                  width={80}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend />
+                <Bar
+                  dataKey={metric}
+                  name={config.label}
+                  fill={config.color}
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
