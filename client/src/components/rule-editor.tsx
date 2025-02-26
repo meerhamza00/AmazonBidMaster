@@ -30,9 +30,9 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
       name: "",
       condition: "greater_than",
       metric: "acos",
-      threshold: 0,
+      threshold: "0",
       action: "decrease_bid",
-      adjustment: 0,
+      adjustment: "0",
       isActive: true,
       ...defaultValues,
     },
@@ -104,7 +104,12 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
             <FormItem>
               <FormLabel>Threshold</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <Input 
+                  type="number" 
+                  step="0.01" 
+                  {...field} 
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -117,7 +122,12 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
             <FormItem>
               <FormLabel>Adjustment (%)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.1" {...field} />
+                <Input 
+                  type="number" 
+                  step="0.1" 
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
               </FormControl>
             </FormItem>
           )}

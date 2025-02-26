@@ -6,6 +6,16 @@ import PerformanceChart from "@/components/performance-chart";
 import CampaignTable from "@/components/campaign-table";
 import { DollarSign, TrendingUp, Users, Activity } from "lucide-react";
 
+type CampaignMetrics = {
+  spend: number;
+  sales: number;
+  acos: number;
+  roas: number;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+};
+
 export default function Dashboard() {
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
@@ -18,10 +28,10 @@ export default function Dashboard() {
   // Calculate total metrics
   const totalMetrics = campaigns.reduce(
     (acc, campaign) => ({
-      spend: acc.spend + campaign.metrics.spend,
-      sales: acc.sales + campaign.metrics.sales,
-      impressions: acc.impressions + campaign.metrics.impressions,
-      clicks: acc.clicks + campaign.metrics.clicks,
+      spend: acc.spend + (campaign.metrics as CampaignMetrics).spend,
+      sales: acc.sales + (campaign.metrics as CampaignMetrics).sales,
+      impressions: acc.impressions + (campaign.metrics as CampaignMetrics).impressions,
+      clicks: acc.clicks + (campaign.metrics as CampaignMetrics).clicks,
     }),
     { spend: 0, sales: 0, impressions: 0, clicks: 0 }
   );
