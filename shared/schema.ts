@@ -47,18 +47,19 @@ export type InsertCampaign = z.infer<typeof campaignSchema>;
 export type InsertRule = z.infer<typeof ruleSchema>;
 export type InsertRecommendation = z.infer<typeof recommendationSchema>;
 
-// CSV validation schema
+// CSV validation schema matching the input file structure
 export const csvRowSchema = z.object({
   campaignName: z.string(),
+  portfolioName: z.string(),
+  campaignState: z.string(),
+  bid: z.number(),
+  adGroupDefaultBid: z.number(),
   spend: z.number(),
   sales: z.number(),
-  acos: z.number(),
+  orders: z.number(),
+  clicks: z.number(),
   roas: z.number(),
   impressions: z.number(),
-  clicks: z.number(),
-  ctr: z.number(),
-  cpc: z.number(),
-  orders: z.number(),
 });
 
 export type CsvRow = z.infer<typeof csvRowSchema>;

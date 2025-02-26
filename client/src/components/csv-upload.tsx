@@ -17,35 +17,52 @@ export default function CsvUpload() {
     setIsUploading(true);
     try {
       const text = await file.text();
-      const rows = text.split('\n').slice(1); // Skip header row
-      const data = rows.map(row => {
-        const [campaignName, spend, sales, acos, roas, impressions, clicks, ctr, cpc, orders] = row.split(',');
-        return {
-          campaignName,
-          spend: parseFloat(spend),
-          sales: parseFloat(sales),
-          acos: parseFloat(acos),
-          roas: parseFloat(roas),
-          impressions: parseInt(impressions),
-          clicks: parseInt(clicks),
-          ctr: parseFloat(ctr),
-          cpc: parseFloat(cpc),
-          orders: parseInt(orders)
-        };
-      });
+      const rows = text.split('\n')
+        .slice(1) // Skip header row
+        .filter(row => row.trim()) // Remove empty rows
+        .map(row => {
+          const [
+            campaignName,
+            portfolioName,
+            campaignState,
+            bid,
+            adGroupDefaultBid,
+            spend,
+            sales,
+            orders,
+            clicks,
+            roas,
+            impressions
+          ] = row.split(',').map(cell => cell.trim());
+
+          return {
+            campaignName,
+            portfolioName,
+            campaignState,
+            bid: parseFloat(bid),
+            adGroupDefaultBid: parseFloat(adGroupDefaultBid),
+            spend: parseFloat(spend),
+            sales: parseFloat(sales),
+            orders: parseInt(orders),
+            clicks: parseInt(clicks),
+            roas: parseFloat(roas),
+            impressions: parseInt(impressions)
+          };
+        });
 
       // Validate data
-      data.forEach(row => {
+      rows.forEach(row => {
         csvRowSchema.parse(row);
       });
 
-      await apiRequest('POST', '/api/upload-csv', data);
+      await apiRequest('POST', '/api/upload-csv', rows);
 
       toast({
         title: "Success",
         description: "CSV data uploaded successfully",
       });
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: "Failed to upload CSV data. Please check the file format.",
@@ -53,6 +70,9 @@ export default function CsvUpload() {
       });
     } finally {
       setIsUploading(false);
+      if (event.target) {
+        event.target.value = ''; // Reset the input
+      }
     }
   };
 

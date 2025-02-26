@@ -54,22 +54,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = schema.parse(req.body);
 
       // Process CSV data and create campaigns
-      const campaigns = data.map(row => ({
-        name: row.campaignName,
-        budget: row.spend.toString(), // Convert to string as per schema
-        status: "active",
-        metrics: {
-          spend: row.spend,
-          sales: row.sales,
-          acos: row.acos,
-          roas: row.roas,
-          impressions: row.impressions,
-          clicks: row.clicks,
-          ctr: row.ctr,
-          cpc: row.cpc,
-          orders: row.orders
-        }
-      }));
+      const campaigns = data.map(row => {
+        // Calculate CTR from clicks and impressions
+        const ctr = row.clicks > 0 ? (row.clicks / row.impressions) * 100 : 0;
+        // Calculate ACOS from spend and sales
+        const acos = row.sales > 0 ? (row.spend / row.sales) * 100 : 0;
+        // Calculate CPC from spend and clicks
+        const cpc = row.clicks > 0 ? row.spend / row.clicks : 0;
+
+        return {
+          name: row.campaignName,
+          budget: row.bid.toString(), // Use bid as budget
+          status: row.campaignState,
+          metrics: {
+            spend: row.spend,
+            sales: row.sales,
+            acos: acos,
+            roas: row.roas,
+            impressions: row.impressions,
+            clicks: row.clicks,
+            ctr: ctr,
+            cpc: cpc,
+            orders: row.orders
+          }
+        };
+      });
 
       // Create campaigns in storage
       const results = await Promise.all(
@@ -78,6 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(results);
     } catch (error) {
+      console.error('CSV Upload Error:', error);
       res.status(400).json({ error: "Invalid CSV data" });
     }
   });
