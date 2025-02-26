@@ -38,12 +38,13 @@ export default function Dashboard() {
 
   const acos = (totalMetrics.spend / totalMetrics.sales) * 100;
 
-  // Mock data for the performance chart
-  const chartData = [
-    { date: "2024-01", spend: 1200, sales: 3600, acos: 33.33 },
-    { date: "2024-02", spend: 1500, sales: 4500, acos: 33.33 },
-    { date: "2024-03", spend: 1800, sales: 5400, acos: 33.33 },
-  ];
+  // Generate chart data from the campaigns
+  const chartData = campaigns.map(campaign => ({
+    date: campaign.name, // Using campaign name as date for now
+    spend: (campaign.metrics as CampaignMetrics).spend,
+    sales: (campaign.metrics as CampaignMetrics).sales,
+    acos: (campaign.metrics as CampaignMetrics).acos
+  })).sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div className="space-y-8">

@@ -27,6 +27,20 @@ export default function PerformanceChart({
   metric,
   title
 }: PerformanceChartProps) {
+  const formatYAxis = (value: number) => {
+    if (metric === "spend" || metric === "sales") {
+      return `$${value.toFixed(0)}`;
+    }
+    return `${value.toFixed(1)}%`;
+  };
+
+  const formatTooltip = (value: number) => {
+    if (metric === "spend" || metric === "sales") {
+      return `$${value.toFixed(2)}`;
+    }
+    return `${value.toFixed(2)}%`;
+  };
+
   return (
     <Card className="w-full h-[400px]">
       <CardHeader>
@@ -36,14 +50,28 @@ export default function PerformanceChart({
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
+            <XAxis 
+              dataKey="date" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval={0}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis 
+              tickFormatter={formatYAxis}
+              width={80}
+            />
+            <Tooltip 
+              formatter={formatTooltip}
+              labelFormatter={(label) => `Campaign: ${label}`}
+            />
             <Line
               type="monotone"
               dataKey={metric}
               stroke="hsl(var(--primary))"
               strokeWidth={2}
+              dot={{ r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>
