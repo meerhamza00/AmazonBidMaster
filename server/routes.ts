@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { csvRowSchema, campaignSchema, ruleSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateBidPrediction } from "@shared/ml/bidOptimizer";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Campaign routes
@@ -96,6 +97,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/recommendations", async (_req, res) => {
     const recommendations = await storage.getRecommendations();
     res.json(recommendations);
+  });
+
+  // ML-based bid optimization endpoints
+  app.get("/api/campaigns/:id/bid-prediction", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaign = await storage.getCampaign(campaignId);
+
+      if (!campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const prediction = generateBidPrediction(campaign);
+      res.json(prediction);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate bid prediction" });
+    }
+  });
+
+  app.get("/api/campaigns/bulk-bid-predictions", async (_req, res) => {
+    try {
+      const campaigns = await storage.getCampaigns();
+      const predictions = campaigns.map(campaign => generateBidPrediction(campaign));
+      res.json(predictions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate bulk bid predictions" });
+    }
   });
 
   const httpServer = createServer(app);
