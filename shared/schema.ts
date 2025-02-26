@@ -11,19 +11,62 @@ export const campaigns = pgTable("campaigns", {
   metrics: jsonb("metrics").notNull(), // Stores performance metrics
 });
 
-// Rule schema
+// Enhanced rule schema with advanced conditions
 export const rules = pgTable("rules", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  condition: text("condition").notNull(),
-  metric: text("metric").notNull(),
-  threshold: decimal("threshold").notNull(),
+  description: text("description"),
+  conditions: jsonb("conditions").notNull(), // Array of condition groups
   action: text("action").notNull(),
   adjustment: decimal("adjustment").notNull(),
+  timeConstraints: jsonb("time_constraints"), // Optional time-based constraints
   isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").notNull().default(0),
 });
 
-// Bid recommendation schema
+// Condition types
+export const metricOperatorSchema = z.enum([
+  "greater_than",
+  "less_than",
+  "equal_to",
+  "not_equal_to",
+  "between",
+]);
+
+export const timeframeSchema = z.enum([
+  "last_24_hours",
+  "last_7_days",
+  "last_30_days",
+  "custom_range",
+]);
+
+export const conditionSchema = z.object({
+  metric: z.string(),
+  operator: metricOperatorSchema,
+  value: z.number(),
+  value2: z.number().optional(), // For "between" operator
+  timeframe: timeframeSchema.optional(),
+});
+
+export const conditionGroupSchema = z.object({
+  conditions: z.array(conditionSchema),
+  operator: z.enum(["AND", "OR"]),
+});
+
+// Time constraint schema
+export const timeConstraintSchema = z.object({
+  startTime: z.string(),
+  endTime: z.string(),
+  daysOfWeek: z.array(z.number().min(0).max(6)),
+});
+
+// Update the rule schema
+export const ruleSchema = createInsertSchema(rules).extend({
+  conditions: z.array(conditionGroupSchema),
+  timeConstraints: timeConstraintSchema.optional(),
+});
+
+// Recommendation schema remains unchanged
 export const recommendations = pgTable("recommendations", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull(),
@@ -34,11 +77,6 @@ export const recommendations = pgTable("recommendations", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Define schemas for data validation
-export const campaignSchema = createInsertSchema(campaigns);
-export const ruleSchema = createInsertSchema(rules);
-export const recommendationSchema = createInsertSchema(recommendations);
-
 // Define types
 export type Campaign = typeof campaigns.$inferSelect;
 export type Rule = typeof rules.$inferSelect;
@@ -47,7 +85,7 @@ export type InsertCampaign = z.infer<typeof campaignSchema>;
 export type InsertRule = z.infer<typeof ruleSchema>;
 export type InsertRecommendation = z.infer<typeof recommendationSchema>;
 
-// CSV validation schema matching the input file structure
+// CSV validation schema
 export const csvRowSchema = z.object({
   campaignName: z.string(),
   portfolioName: z.string(),
@@ -63,3 +101,6 @@ export const csvRowSchema = z.object({
 });
 
 export type CsvRow = z.infer<typeof csvRowSchema>;
+
+export const campaignSchema = createInsertSchema(campaigns);
+export const recommendationSchema = createInsertSchema(recommendations);
