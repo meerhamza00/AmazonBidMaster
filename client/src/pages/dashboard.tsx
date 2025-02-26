@@ -18,7 +18,6 @@ type CampaignMetrics = {
 };
 
 export default function Dashboard() {
-  const [chartData, setChartData] = useState([]); //This line is not used but remains as it was in the original and modified snippets.
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
   });
