@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -56,9 +56,8 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
         </TableHeader>
         <TableBody>
           {campaigns.map((campaign) => (
-            <>
-              <TableRow 
-                key={campaign.id}
+            <React.Fragment key={campaign.id}>
+              <TableRow
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => toggleRow(campaign.id)}
               >
@@ -79,13 +78,13 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
                 <TableCell>{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
               </TableRow>
               {expandedRows.has(campaign.id) && (
-                <TableRow>
+                <TableRow key={`${campaign.id}-expanded`}>
                   <TableCell colSpan={9} className="p-4">
                     <BidOptimizer campaignId={campaign.id} />
                   </TableCell>
                 </TableRow>
               )}
-            </>
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>
