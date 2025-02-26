@@ -25,33 +25,39 @@ type Props = {
 const metricConfig = {
   spend: {
     label: "Spend ($)",
-    color: "#10B981",
+    color: "hsl(var(--success))",
     formatter: (value: number) => `$${value.toFixed(2)}`,
+    gradientId: "spend-gradient",
   },
   sales: {
     label: "Sales ($)",
-    color: "#3B82F6",
+    color: "hsl(var(--primary))",
     formatter: (value: number) => `$${value.toFixed(2)}`,
+    gradientId: "sales-gradient",
   },
   acos: {
     label: "ACOS (%)",
-    color: "#EF4444",
+    color: "hsl(var(--destructive))",
     formatter: (value: number) => `${value.toFixed(2)}%`,
+    gradientId: "acos-gradient",
   },
   roas: {
     label: "ROAS",
-    color: "#8B5CF6",
+    color: "hsl(var(--secondary))",
     formatter: (value: number) => `${value.toFixed(2)}x`,
+    gradientId: "roas-gradient",
   },
   impressions: {
     label: "Impressions",
-    color: "#F59E0B",
+    color: "hsl(var(--warning))",
     formatter: (value: number) => value.toLocaleString(),
+    gradientId: "impressions-gradient",
   },
   clicks: {
     label: "Clicks",
-    color: "#6366F1",
+    color: "hsl(var(--info))",
     formatter: (value: number) => value.toLocaleString(),
+    gradientId: "clicks-gradient",
   },
 };
 
@@ -82,19 +88,32 @@ export default function PerformanceChart({ data, metric, title }: Props) {
             data={data}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <defs>
+              <linearGradient id={config.gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={config.color} stopOpacity={0.2}/>
+                <stop offset="95%" stopColor={config.color} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              opacity={0.1}
+              vertical={false}
+              stroke="hsl(var(--border))"
+            />
             <XAxis
               dataKey="date"
               angle={-45}
               textAnchor="end"
               height={60}
               interval={0}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              stroke="hsl(var(--border))"
             />
             <YAxis
               tickFormatter={formatYAxis}
               width={80}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              stroke="hsl(var(--border))"
             />
             <Tooltip
               formatter={formatTooltip}
@@ -103,17 +122,30 @@ export default function PerformanceChart({ data, metric, title }: Props) {
                 backgroundColor: "hsl(var(--background))",
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "6px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              }}
+              cursor={{ stroke: "hsl(var(--muted))" }}
+            />
+            <Legend
+              wrapperStyle={{
+                paddingTop: "20px",
+                fontSize: "12px",
+                color: "hsl(var(--muted-foreground))"
               }}
             />
-            <Legend />
             <Line
               type="monotone"
               dataKey={metric}
               name={config.label}
               stroke={config.color}
               strokeWidth={2}
-              dot={{ r: 4, strokeWidth: 2 }}
-              activeDot={{ r: 6, strokeWidth: 2 }}
+              dot={{ r: 3, strokeWidth: 2, fill: "hsl(var(--background))" }}
+              activeDot={{
+                r: 5,
+                strokeWidth: 2,
+                fill: config.color
+              }}
+              fill={`url(#${config.gradientId})`}
             />
           </LineChart>
         </ResponsiveContainer>
