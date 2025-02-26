@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -40,43 +41,40 @@ export default function CsvUpload() {
             campaignName,
             portfolioName,
             campaignState,
-            bid: parseFloat(bid),
-            adGroupDefaultBid: parseFloat(adGroupDefaultBid),
-            spend: parseFloat(spend),
-            sales: parseFloat(sales),
-            orders: parseInt(orders),
-            clicks: parseInt(clicks),
-            roas: parseFloat(roas),
-            impressions: parseInt(impressions)
+            bid: parseFloat(bid) || 0,
+            adGroupDefaultBid: parseFloat(adGroupDefaultBid) || 0,
+            spend: parseFloat(spend) || 0,
+            sales: parseFloat(sales) || 0,
+            orders: parseInt(orders) || 0,
+            clicks: parseInt(clicks) || 0,
+            roas: parseFloat(roas) || 0,
+            impressions: parseInt(impressions) || 0
           };
         });
 
-      // Validate data
-      rows.forEach(row => {
-        csvRowSchema.parse(row);
+      const response = await apiRequest('/api/upload-csv', {
+        method: 'POST',
+        body: JSON.stringify(rows)
       });
 
-      await apiRequest('POST', '/api/upload-csv', rows);
-
-      // Invalidate campaigns query to refresh the data
-      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-
-      toast({
-        title: "Success",
-        description: `Successfully uploaded ${rows.length} campaigns`,
-      });
+      if (response.ok) {
+        queryClient.invalidateQueries(['/api/campaigns']);
+        toast({
+          title: "Success",
+          description: "CSV data uploaded successfully"
+        });
+      } else {
+        throw new Error('Upload failed');
+      }
     } catch (error) {
-      console.error('Upload error:', error);
       toast({
         title: "Error",
-        description: "Failed to upload CSV data. Please check the file format.",
-        variant: "destructive",
+        description: "Failed to upload CSV file",
+        variant: "destructive"
       });
     } finally {
       setIsUploading(false);
-      if (event.target) {
-        event.target.value = ''; // Reset the input
-      }
+      event.target.value = ''; // Reset file input
     }
   };
 
