@@ -12,23 +12,25 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold">Amazon PPC Manager</h1>
             <div className="flex space-x-2">
-              <Link href="/">
-                <a className={cn(
+              <Link 
+                href="/"
+                className={cn(
                   "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
                   location === "/" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                )}>
-                  <LineChart className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </a>
+                )}
+              >
+                <LineChart className="h-4 w-4" />
+                <span>Dashboard</span>
               </Link>
-              <Link href="/rules">
-                <a className={cn(
+              <Link 
+                href="/rules"
+                className={cn(
                   "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
                   location === "/rules" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                )}>
-                  <Settings className="h-4 w-4" />
-                  <span>Rules</span>
-                </a>
+                )}
+              >
+                <Settings className="h-4 w-4" />
+                <span>Rules</span>
               </Link>
             </div>
           </div>
