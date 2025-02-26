@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { csvRowSchema } from "@shared/schema";
+import { queryClient } from "@/lib/queryClient";
 
 export default function CsvUpload() {
   const [isUploading, setIsUploading] = useState(false);
@@ -57,9 +58,12 @@ export default function CsvUpload() {
 
       await apiRequest('POST', '/api/upload-csv', rows);
 
+      // Invalidate campaigns query to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+
       toast({
         title: "Success",
-        description: "CSV data uploaded successfully",
+        description: `Successfully uploaded ${rows.length} campaigns`,
       });
     } catch (error) {
       console.error('Upload error:', error);
@@ -88,8 +92,8 @@ export default function CsvUpload() {
             disabled={isUploading}
             onClick={() => document.getElementById('csv-upload')?.click()}
           >
-            <Upload className="mr-2 h-4 w-4" />
-            Select CSV File
+            <Upload className={`mr-2 h-4 w-4 ${isUploading ? 'animate-spin' : ''}`} />
+            {isUploading ? 'Uploading...' : 'Select CSV File'}
           </Button>
           <input
             id="csv-upload"
@@ -98,7 +102,6 @@ export default function CsvUpload() {
             className="hidden"
             onChange={handleFileUpload}
           />
-          {isUploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
         </div>
       </CardContent>
     </Card>
