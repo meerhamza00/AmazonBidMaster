@@ -147,11 +147,15 @@ export default function Rules() {
                 {rules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell className="font-medium">{rule.name}</TableCell>
-                    <TableCell className="capitalize">{rule.metric}</TableCell>
-                    <TableCell>
-                      {rule.condition.replace("_", " ")}
+                    <TableCell className="capitalize">
+                      {rule.conditions[0]?.conditions[0]?.metric || '-'}
                     </TableCell>
-                    <TableCell>{rule.threshold}%</TableCell>
+                    <TableCell>
+                      {rule.conditions[0]?.conditions[0]?.operator?.replace("_", " ") || '-'}
+                    </TableCell>
+                    <TableCell>
+                      {rule.conditions[0]?.conditions[0]?.value || 0}%
+                    </TableCell>
                     <TableCell>{rule.adjustment}%</TableCell>
                     <TableCell>
                       <Switch
