@@ -35,11 +35,11 @@ export default function BidOptimizer({ campaignId }: { campaignId: number }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-sm text-muted-foreground">ACOS</span>
-                <p className="text-lg font-semibold">{prediction.currentMetrics.acos.toFixed(2)}%</p>
+                <p className="text-lg font-semibold">{prediction.metrics.predictedAcos.toFixed(2)}%</p>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">ROAS</span>
-                <p className="text-lg font-semibold">{prediction.currentMetrics.roas.toFixed(2)}x</p>
+                <p className="text-lg font-semibold">{prediction.metrics.predictedRoas.toFixed(2)}x</p>
               </div>
             </div>
           </div>
