@@ -153,6 +153,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(recommendations);
   });
 
+  // Campaign forecast endpoint
+  app.get("/api/campaigns/:id/forecast", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaign = await storage.getCampaign(campaignId);
+
+      if (!campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const forecast = generateCampaignForecast(campaign);
+      res.json(forecast);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate forecast" });
+    }
+  });
+
   // ML-based bid optimization endpoints
   app.get("/api/campaigns/:id/bid-prediction", async (req, res) => {
     try {

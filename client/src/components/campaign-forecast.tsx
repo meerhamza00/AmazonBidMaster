@@ -73,3 +73,124 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: ForecastP
     </Card>
   );
 }
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useState } from "react";
+import { type Campaign } from "@shared/schema";
+import { type CampaignForecast } from "@shared/ml/forecasting";
+
+interface CampaignForecastProps {
+  campaign: Campaign;
+}
+
+export default function CampaignForecast({ campaign }: CampaignForecastProps) {
+  const [selectedMetric, setSelectedMetric] = useState<string>("spend");
+  
+  const { data: forecast, isLoading } = useQuery<CampaignForecast>({
+    queryKey: [`/api/campaigns/${campaign.id}/forecast`],
+  });
+
+  if (isLoading) {
+    return <div>Loading forecast...</div>;
+  }
+
+  if (!forecast) {
+    return null;
+  }
+
+  const metrics = [
+    { value: "spend", label: "Spend" },
+    { value: "sales", label: "Sales" },
+    { value: "acos", label: "ACOS" },
+    { value: "roas", label: "ROAS" }
+  ];
+
+  // Combine historical and forecast data for the chart
+  const chartData = [
+    ...forecast.historicalData.map(point => ({
+      ...point,
+      type: "Historical"
+    })),
+    ...forecast.forecasts.map(point => ({
+      ...point,
+      type: "Forecast"
+    }))
+  ];
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">Performance Forecast</CardTitle>
+          <Select value={selectedMetric} onValueChange={setSelectedMetric}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select metric" />
+            </SelectTrigger>
+            <SelectContent>
+              {metrics.map(metric => (
+                <SelectItem key={metric.value} value={metric.value}>
+                  {metric.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey={selectedMetric}
+                stroke="#8884d8"
+                strokeWidth={2}
+                dot={false}
+                name="Historical"
+              />
+              <Line
+                type="monotone"
+                dataKey={selectedMetric}
+                stroke="#82ca9d"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                name="Forecast"
+              />
+              <Line
+                type="monotone"
+                dataKey={`upper.${selectedMetric}`}
+                stroke="#82ca9d"
+                strokeWidth={1}
+                strokeDasharray="3 3"
+                dot={false}
+                name="Upper Bound"
+              />
+              <Line
+                type="monotone"
+                dataKey={`lower.${selectedMetric}`}
+                stroke="#82ca9d"
+                strokeWidth={1}
+                strokeDasharray="3 3"
+                dot={false}
+                name="Lower Bound"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-4 text-sm text-muted-foreground">
+          <p>Forecast Accuracy Metrics:</p>
+          <p>MAPE: {forecast.metrics.mape.toFixed(2)}%</p>
+          <p>RMSE: ${forecast.metrics.rmse.toFixed(2)}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

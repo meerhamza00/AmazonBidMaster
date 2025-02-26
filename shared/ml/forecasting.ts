@@ -67,3 +67,143 @@ export function calculateConfidenceInterval(forecasts: ForecastMetrics[]): {
   
   return { upper, lower };
 }
+import { type Campaign } from "../schema";
+
+export interface ForecastPoint {
+  date: string;
+  spend: number;
+  sales: number;
+  acos: number;
+  roas: number;
+}
+
+export interface CampaignForecast {
+  historicalData: ForecastPoint[];
+  forecasts: ForecastPoint[];
+  confidenceInterval: {
+    upper: ForecastPoint[];
+    lower: ForecastPoint[];
+  };
+  metrics: {
+    mape: number; // Mean Absolute Percentage Error
+    rmse: number; // Root Mean Square Error
+  };
+}
+
+// Simple exponential smoothing forecast
+function exponentialSmoothing(data: number[], alpha: number): number[] {
+  const smoothed = [data[0]];
+  for (let i = 1; i < data.length; i++) {
+    smoothed[i] = alpha * data[i] + (1 - alpha) * smoothed[i - 1];
+  }
+  return smoothed;
+}
+
+// Generate forecast points
+function generateForecastPoints(lastValue: number, periods: number, trend: number): number[] {
+  const forecasts = [];
+  let currentValue = lastValue;
+  
+  for (let i = 0; i < periods; i++) {
+    currentValue = currentValue * (1 + trend);
+    forecasts.push(currentValue);
+  }
+  
+  return forecasts;
+}
+
+// Calculate confidence intervals
+function calculateConfidenceIntervals(
+  forecasts: number[],
+  standardDeviation: number,
+  confidenceLevel: number = 0.95
+): { upper: number[]; lower: number[] } {
+  const zScore = 1.96; // 95% confidence level
+  const margin = zScore * standardDeviation;
+  
+  return {
+    upper: forecasts.map(f => f + margin),
+    lower: forecasts.map(f => Math.max(0, f - margin))
+  };
+}
+
+export function generateCampaignForecast(campaign: Campaign, daysToForecast: number = 14): CampaignForecast {
+  const metrics = campaign.metrics as any;
+  
+  // Convert campaign metrics to time series
+  const historicalData: ForecastPoint[] = Array(14).fill(null).map((_, i) => ({
+    date: new Date(Date.now() - (13 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    spend: metrics.spend / 14,
+    sales: metrics.sales / 14,
+    acos: metrics.acos,
+    roas: metrics.roas
+  }));
+
+  // Calculate trends
+  const spendTrend = 0.02; // Assuming 2% daily growth
+  const salesTrend = 0.025; // Assuming 2.5% daily growth
+
+  // Generate forecasts
+  const futureSpend = generateForecastPoints(metrics.spend / 14, daysToForecast, spendTrend);
+  const futureSales = generateForecastPoints(metrics.sales / 14, daysToForecast, salesTrend);
+
+  // Generate forecast points
+  const forecasts: ForecastPoint[] = Array(daysToForecast).fill(null).map((_, i) => {
+    const spend = futureSpend[i];
+    const sales = futureSales[i];
+    return {
+      date: new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      spend,
+      sales,
+      acos: (spend / sales) * 100,
+      roas: sales / spend
+    };
+  });
+
+  // Calculate confidence intervals
+  const spendStdDev = Math.sqrt(
+    historicalData.reduce((acc, point) => 
+      acc + Math.pow(point.spend - metrics.spend / 14, 2), 0) / historicalData.length
+  );
+
+  const salesStdDev = Math.sqrt(
+    historicalData.reduce((acc, point) => 
+      acc + Math.pow(point.sales - metrics.sales / 14, 2), 0) / historicalData.length
+  );
+
+  const confidenceIntervals = {
+    upper: forecasts.map((f, i) => ({
+      ...f,
+      spend: f.spend + 1.96 * spendStdDev,
+      sales: f.sales + 1.96 * salesStdDev,
+      acos: ((f.spend + 1.96 * spendStdDev) / (f.sales + 1.96 * salesStdDev)) * 100,
+      roas: (f.sales + 1.96 * salesStdDev) / (f.spend + 1.96 * spendStdDev)
+    })),
+    lower: forecasts.map((f, i) => ({
+      ...f,
+      spend: Math.max(0, f.spend - 1.96 * spendStdDev),
+      sales: Math.max(0, f.sales - 1.96 * salesStdDev),
+      acos: ((f.spend - 1.96 * spendStdDev) / (f.sales - 1.96 * salesStdDev)) * 100,
+      roas: (f.sales - 1.96 * salesStdDev) / (f.spend - 1.96 * spendStdDev)
+    }))
+  };
+
+  // Calculate error metrics
+  const mape = historicalData.reduce((acc, point, i) => 
+    acc + Math.abs((point.spend - metrics.spend / 14) / (metrics.spend / 14)), 0) / historicalData.length * 100;
+
+  const rmse = Math.sqrt(
+    historicalData.reduce((acc, point) => 
+      acc + Math.pow(point.spend - metrics.spend / 14, 2), 0) / historicalData.length
+  );
+
+  return {
+    historicalData,
+    forecasts,
+    confidenceInterval: confidenceIntervals,
+    metrics: {
+      mape,
+      rmse
+    }
+  };
+}
