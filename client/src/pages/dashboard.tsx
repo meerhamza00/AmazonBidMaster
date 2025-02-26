@@ -76,7 +76,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <PerformanceChart
           data={chartData}
           metric="spend"
@@ -84,8 +84,28 @@ export default function Dashboard() {
         />
         <PerformanceChart
           data={chartData}
+          metric="sales"
+          title="Sales Over Time"
+        />
+        <PerformanceChart
+          data={chartData}
           metric="acos"
           title="ACOS Over Time"
+        />
+        <PerformanceChart
+          data={chartData}
+          metric="roas"
+          title="ROAS Over Time"
+        />
+        <PerformanceChart
+          data={chartData}
+          metric="impressions"
+          title="Impressions Over Time"
+        />
+        <PerformanceChart
+          data={chartData}
+          metric="clicks"
+          title="Clicks Over Time"
         />
       </div>
 

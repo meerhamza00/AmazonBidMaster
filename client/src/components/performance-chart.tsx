@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LineChart,
@@ -6,72 +7,113 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend,
 } from "recharts";
 
-interface DataPoint {
+type ChartData = {
   date: string;
-  spend: number;
-  sales: number;
-  acos: number;
-}
+  [key: string]: number | string;
+};
 
-interface PerformanceChartProps {
-  data: DataPoint[];
-  metric: "spend" | "sales" | "acos";
+type Props = {
+  data: ChartData[];
+  metric: string;
   title: string;
-}
+};
 
-export default function PerformanceChart({
-  data,
-  metric,
-  title
-}: PerformanceChartProps) {
+const metricConfig = {
+  spend: {
+    label: "Spend ($)",
+    color: "#10B981",
+    formatter: (value: number) => `$${value.toFixed(2)}`,
+  },
+  sales: {
+    label: "Sales ($)",
+    color: "#3B82F6",
+    formatter: (value: number) => `$${value.toFixed(2)}`,
+  },
+  acos: {
+    label: "ACOS (%)",
+    color: "#EF4444",
+    formatter: (value: number) => `${value.toFixed(2)}%`,
+  },
+  roas: {
+    label: "ROAS",
+    color: "#8B5CF6",
+    formatter: (value: number) => `${value.toFixed(2)}x`,
+  },
+  impressions: {
+    label: "Impressions",
+    color: "#F59E0B",
+    formatter: (value: number) => value.toLocaleString(),
+  },
+  clicks: {
+    label: "Clicks",
+    color: "#6366F1",
+    formatter: (value: number) => value.toLocaleString(),
+  },
+};
+
+export default function PerformanceChart({ data, metric, title }: Props) {
+  const config = metricConfig[metric as keyof typeof metricConfig];
+
   const formatYAxis = (value: number) => {
-    if (metric === "spend" || metric === "sales") {
-      return `$${value.toFixed(0)}`;
-    }
-    return `${value.toFixed(1)}%`;
+    return config.formatter(value);
   };
 
   const formatTooltip = (value: number) => {
-    if (metric === "spend" || metric === "sales") {
-      return `$${value.toFixed(2)}`;
-    }
-    return `${value.toFixed(2)}%`;
+    return [config.formatter(value), config.label];
   };
 
   return (
     <Card className="w-full h-[400px]">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>{title}</span>
+          <span className="text-sm font-normal text-muted-foreground">
+            {config.label}
+          </span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="date" 
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis
+              dataKey="date"
               angle={-45}
               textAnchor="end"
               height={60}
               interval={0}
               tick={{ fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               tickFormatter={formatYAxis}
               width={80}
+              tick={{ fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               formatter={formatTooltip}
-              labelFormatter={(label) => `Campaign: ${label}`}
+              labelFormatter={(label) => `Date: ${label}`}
+              contentStyle={{
+                backgroundColor: "hsl(var(--background))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "6px",
+              }}
             />
+            <Legend />
             <Line
               type="monotone"
               dataKey={metric}
-              stroke="hsl(var(--primary))"
+              name={config.label}
+              stroke={config.color}
               strokeWidth={2}
-              dot={{ r: 4 }}
+              dot={{ r: 4, strokeWidth: 2 }}
+              activeDot={{ r: 6, strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
