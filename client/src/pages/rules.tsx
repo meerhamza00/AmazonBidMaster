@@ -157,6 +157,7 @@ export default function Rules() {
                       <Switch
                         checked={rule.isActive}
                         onCheckedChange={() => handleToggleRule(rule)}
+                        className="data-[state=checked]:bg-primary"
                       />
                     </TableCell>
                     <TableCell>
