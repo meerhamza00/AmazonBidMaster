@@ -3,7 +3,7 @@ import { type Campaign } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from "react";
 import { generateForecast, calculateConfidenceInterval } from "@shared/ml/forecasting";
 import { type CampaignForecast as ForecastData } from "@shared/ml/forecasting";
@@ -87,13 +87,40 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
                 <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey={key} stroke="#ff6b00" strokeWidth={2} />
-                      <Line type="monotone" dataKey={`${key}Upper`} stroke="#ff6b00" strokeWidth={1} strokeDasharray="3 3" />
-                      <Line type="monotone" dataKey={`${key}Lower`} stroke="#ff6b00" strokeWidth={1} strokeDasharray="3 3" />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey={key} 
+                        name="Forecast" 
+                        stroke="#ff6b00" 
+                        strokeWidth={2} 
+                        dot={{ fill: "#ff6b00", r: 4 }}
+                        activeDot={{ r: 6, fill: "#ff6b00" }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey={`${key}Upper`} 
+                        name="Upper Bound" 
+                        stroke="#ff6b00" 
+                        strokeWidth={1} 
+                        strokeDasharray="3 3" 
+                        strokeOpacity={0.7}
+                        dot={false}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey={`${key}Lower`} 
+                        name="Lower Bound" 
+                        stroke="#ff6b00" 
+                        strokeWidth={1} 
+                        strokeDasharray="3 3" 
+                        strokeOpacity={0.7}
+                        dot={false}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>

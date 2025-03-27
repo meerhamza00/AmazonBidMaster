@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/card";
 import { PlusCircle, MinusCircle, Clock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface RuleEditorProps {
@@ -105,17 +106,28 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormDescription>
-                Explain what this rule does and when it should be triggered.
-              </FormDescription>
-            </FormItem>
-          )}
+          render={({ field }) => {
+            // Ensure field.value is a string
+            const safeValue = typeof field.value === 'string' ? field.value : '';
+            
+            return (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    value={safeValue}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Explain what this rule does and when it should be triggered.
+                </FormDescription>
+              </FormItem>
+            );
+          }}
         />
 
         <div className="space-y-4">
@@ -200,6 +212,28 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
                   <SelectItem value="pause_campaign">Pause Campaign</SelectItem>
                 </SelectContent>
               </Select>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="isActive"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Rule Status</FormLabel>
+                <FormDescription>
+                  Enable or disable this rule
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="data-[state=checked]:bg-[#ff6b00]"
+                />
+              </FormControl>
             </FormItem>
           )}
         />

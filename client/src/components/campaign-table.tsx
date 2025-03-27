@@ -79,7 +79,7 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
                 <TableCell>{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
               </TableRow>
               {expandedRows.has(campaign.id) && (
-                <TableRow key={`${campaign.id}-expanded`}>
+                <TableRow>
                   <TableCell colSpan={9} className="p-4 space-y-4">
                     <BidOptimizer campaignId={campaign.id} />
                     <CampaignForecast campaign={campaign} />

@@ -70,7 +70,7 @@ export default function BidOptimizer({ campaignId }: { campaignId: number }) {
               <span className="text-sm font-medium">Prediction Confidence</span>
               <span className="text-sm">{prediction.confidence.toFixed(1)}%</span>
             </div>
-            <Progress value={prediction.confidence} className="h-2 bg-muted" />
+            <Progress value={prediction.confidence} className="h-2 bg-muted [&>div]:bg-[#ff6b00]" />
           </div>
 
           <div className="space-y-2">

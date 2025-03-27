@@ -117,7 +117,7 @@ export default function PerformanceChart({ data, metric, title }: {
             <Bar
               dataKey={metric}
               name={config.label}
-              fill={config.color}
+              fill="#ff6b00"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
@@ -150,7 +150,7 @@ export default function PerformanceChart({ data, metric, title }: {
                   <Bar
                     dataKey={metric}
                     name={config.label}
-                    fill={config.color}
+                    fill="#ff6b00"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
