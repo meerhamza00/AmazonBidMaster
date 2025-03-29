@@ -179,12 +179,14 @@ export default function PpcExpertChatbot() {
     }
   });
 
-  // Scroll to bottom of messages when they change
+  // Scroll to bottom of messages when they change or when typing status changes
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100); // Small delay to ensure content is rendered
     }
-  }, [activeConversation]);
+  }, [activeConversation, isTyping]);
 
   // Handle sending a message
   const handleSendMessage = async () => {
@@ -383,7 +385,7 @@ export default function PpcExpertChatbot() {
             
             {/* Chat messages */}
             <div className="flex-1 flex flex-col">
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 p-4" type="always">
                 {!activeConversation ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6">
                     <Bot size={40} className="text-orange-500 mb-4" />

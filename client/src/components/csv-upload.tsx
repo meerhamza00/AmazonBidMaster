@@ -2,11 +2,12 @@ import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Upload, FileText, Check, AlertCircle, FilePlus2 } from "lucide-react";
+import { Upload, FileText, Check, AlertCircle, FilePlus2, Download } from "lucide-react";
 import { csvRowSchema } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CsvUploadProps {
   onUploadComplete?: () => void;
@@ -248,9 +249,31 @@ export default function CsvUpload({ onUploadComplete }: CsvUploadProps) {
           onChange={handleInputChange}
         />
       </CardContent>
-      <CardFooter className="text-xs text-muted-foreground flex justify-between border-t pt-4">
-        <div>Supported format: CSV</div>
-        <div>Maximum file size: 5MB</div>
+      <CardFooter className="text-muted-foreground flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between border-t pt-4">
+        <div className="flex items-center space-x-4 text-xs">
+          <div>Supported format: CSV</div>
+          <div>Maximum file size: 5MB</div>
+        </div>
+        <div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href="/templates/amazon_ppc_template.csv"
+                  download="amazon_ppc_template.csv"
+                  className="inline-flex items-center text-xs font-medium text-primary hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Download CSV Template
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download a sample template with the correct format</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </CardFooter>
     </Card>
   );
