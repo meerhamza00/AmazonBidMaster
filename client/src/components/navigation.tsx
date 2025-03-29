@@ -44,7 +44,12 @@ export default function Navigation() {
       href: "/rules",
       label: "Optimization Rules",
       icon: Settings,
-      badge: "New"
+    },
+    {
+      href: "/#features",
+      label: "Advanced Features",
+      icon: DollarSign,
+      badge: "NEW"
     }
   ];
 

@@ -90,15 +90,11 @@ export default function Dashboard() {
   };
   
   // Add event listener for hash changes
-  // This hook runs when the component mounts
   useEffect(() => {
+    // This is executed immediately after component renders
     checkHashLink(); // Check on initial load
     window.addEventListener('hashchange', checkHashLink);
-    
-    // Cleanup function when component unmounts
-    return () => {
-      window.removeEventListener('hashchange', checkHashLink);
-    };
+    return () => window.removeEventListener('hashchange', checkHashLink);
   }, []);
 
   // Calculate total metrics
