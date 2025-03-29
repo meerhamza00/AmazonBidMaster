@@ -112,15 +112,43 @@ export default function PpcExpertChatbot() {
   // Send a message to an existing conversation
   const sendMessageToConversation = useMutation({
     mutationFn: async ({ message, conversationId }: { message: string; conversationId?: string }) => {
-      const response = await apiRequest('/api/chat/messages', {
-        method: 'POST',
-        data: {
-          message,
-          conversationId,
-          provider
+      try {
+        const response = await apiRequest('/api/chat/messages', {
+          method: 'POST',
+          data: {
+            message,
+            conversationId,
+            provider
+          }
+        });
+        return response.data;
+      } catch (error: any) {
+        // Check if this is a quota error (OpenAI)
+        if (error?.message?.includes('quota') && provider === 'openai') {
+          // Try with a different provider automatically
+          const backupProvider = 'anthropic';
+          toast({
+            title: 'OpenAI quota exceeded',
+            description: `Trying with ${backupProvider} instead...`,
+          });
+          
+          // Switch to the backup provider
+          setProvider(backupProvider as AiProvider);
+          
+          // Retry with the new provider
+          const retryResponse = await apiRequest('/api/chat/messages', {
+            method: 'POST',
+            data: {
+              message,
+              conversationId,
+              provider: backupProvider
+            }
+          });
+          return retryResponse.data;
         }
-      });
-      return response.data;
+        
+        throw error;
+      }
     },
     onSuccess: () => {
       refetchActiveConversation();
@@ -129,7 +157,7 @@ export default function PpcExpertChatbot() {
     onError: (error: any) => {
       toast({
         title: 'Error sending message',
-        description: error.message,
+        description: error.message || 'Something went wrong. Try a different AI provider.',
         variant: 'destructive'
       });
     }

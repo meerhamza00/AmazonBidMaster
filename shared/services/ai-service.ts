@@ -1,4 +1,7 @@
 import { AiProvider, ChatMessage, ChatSettings } from '../chatbot';
+import { OpenAiService } from './openai-service';
+import { AnthropicService } from './anthropic-service';
+import { GeminiService } from './gemini-service';
 
 // Base interface for all AI service implementations
 export interface AiService {
@@ -14,21 +17,46 @@ export interface AiService {
   isConfigured(): boolean;
 }
 
+// Cache for AI service instances
+const serviceInstances: Partial<Record<AiProvider, AiService>> = {
+  'openai': new OpenAiService(),
+  'anthropic': new AnthropicService(),
+  'gemini': new GeminiService()
+  // The remaining providers are not implemented yet
+};
+
 // Factory function to get the appropriate AI service based on provider
 export async function getAiService(provider: AiProvider): Promise<AiService> {
+  // Check if we have a cached instance
+  if (serviceInstances[provider]) {
+    return serviceInstances[provider] as AiService;
+  }
+  
+  // If not cached, create a new instance based on the provider
+  let service: AiService;
+  
   switch (provider) {
     case 'openai':
-      const { OpenAiService } = await import('./openai-service');
-      return new OpenAiService();
+      service = new OpenAiService();
+      break;
     case 'anthropic':
-      const { AnthropicService } = await import('./anthropic-service');
-      return new AnthropicService();
+      service = new AnthropicService();
+      break;
     case 'gemini':
-      const { GeminiService } = await import('./gemini-service');
-      return new GeminiService();
+      service = new GeminiService();
+      break;
+    case 'qwen':
+    case 'mixtral':
+    case 'local':
+      throw new Error(`AI provider '${provider}' is not implemented yet.`);
     default:
-      throw new Error(`AI provider '${provider}' is not supported or implemented yet.`);
+      throw new Error(`Unknown AI provider: ${provider}`);
   }
+  
+  // Cache the new instance
+  serviceInstances[provider] = service;
+  
+  return service;
 }
 
 // Helper function to create a system message for the PPC expert context

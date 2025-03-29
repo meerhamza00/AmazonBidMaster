@@ -160,17 +160,55 @@ export async function sendMessage(req: Request, res: Response) {
     }
     
     // Get AI service for the specified provider
-    const aiService = await getAiService(provider as any);
+    let aiService;
+    let response;
+    let usedFallbackProvider = false;
+    let fallbackProvider;
     
-    // Check if service is configured (API key available)
-    if (!aiService.isConfigured()) {
-      return res.status(400).json({ 
-        error: `${provider} API key not configured. Please provide the API key.`
-      });
+    try {
+      aiService = await getAiService(provider as any);
+      
+      // Check if service is configured (API key available)
+      if (!aiService.isConfigured()) {
+        return res.status(400).json({ 
+          error: `${provider} API key not configured. Please provide the API key.`
+        });
+      }
+      
+      // Try sending messages to the primary AI service
+      response = await aiService.sendMessages(conversation.messages);
+    } catch (error: any) {
+      console.error(`Error with ${provider} service:`, error);
+      
+      // Try to find an alternative provider that is configured
+      if (provider === 'openai') {
+        fallbackProvider = 'anthropic';
+      } else if (provider === 'anthropic') {
+        fallbackProvider = 'gemini';
+      } else {
+        fallbackProvider = 'openai';
+      }
+      
+      try {
+        // Get the fallback service
+        console.log(`Attempting to use fallback provider: ${fallbackProvider}`);
+        const fallbackService = await getAiService(fallbackProvider as any);
+        
+        if (fallbackService.isConfigured()) {
+          // Try with the fallback service
+          response = await fallbackService.sendMessages(conversation.messages);
+          usedFallbackProvider = true;
+          console.log(`Successfully used fallback provider: ${fallbackProvider}`);
+        } else {
+          // If fallback isn't configured either, throw original error
+          throw error;
+        }
+      } catch (fallbackError) {
+        // If both primary and fallback fail, return the original error
+        console.error('Fallback provider also failed:', fallbackError);
+        throw error;
+      }
     }
-    
-    // Send messages to AI service and get response
-    const response = await aiService.sendMessages(conversation.messages);
     
     // Add assistant response to conversation
     const assistantMessage = createChatMessage('assistant', response);
@@ -180,10 +218,36 @@ export async function sendMessage(req: Request, res: Response) {
     // Generate title if it's a new conversation and doesn't have a real title
     if (conversation.title === 'New Conversation') {
       try {
-        const title = await aiService.generateTitle(message);
-        conversation.title = title;
+        // Determine which provider to use for title generation
+        let titleProvider = provider;
+        if (usedFallbackProvider && fallbackProvider) {
+          titleProvider = fallbackProvider;
+        }
+        
+        // Get the appropriate service for title generation
+        const titleService = await getAiService(titleProvider as any);
+        
+        try {
+          const title = await titleService.generateTitle(message);
+          conversation.title = title;
+        } catch (error) {
+          // If title generation fails, try with another provider if possible
+          if (!usedFallbackProvider && fallbackProvider) {
+            try {
+              const backupTitleService = await getAiService(fallbackProvider as any);
+              if (backupTitleService.isConfigured()) {
+                const title = await backupTitleService.generateTitle(message);
+                conversation.title = title;
+              }
+            } catch (secondError) {
+              console.error('Backup title generation failed:', secondError);
+            }
+          } else {
+            console.error('Error generating title:', error);
+          }
+        }
       } catch (error) {
-        console.error('Error generating title:', error);
+        console.error('Error in title generation process:', error);
       }
     }
     
