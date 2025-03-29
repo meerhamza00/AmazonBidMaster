@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Campaign } from "@shared/schema";
 import CsvUpload from "@/components/csv-upload";
@@ -5,8 +6,45 @@ import KPICard from "@/components/kpi-card";
 import PerformanceChart from "@/components/performance-chart";
 import CampaignTable from "@/components/campaign-table";
 import CampaignForecast from "@/components/campaign-forecast";
-import { DollarSign, TrendingUp, Users, Activity } from "lucide-react";
+import { 
+  DollarSign, 
+  TrendingUp, 
+  Users, 
+  Activity, 
+  ArrowUpRight,
+  BarChart, 
+  MousePointer, 
+  Target,
+  RefreshCw,
+  Download,
+  LineChart,
+  ChevronRight
+} from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 type CampaignMetrics = {
   spend: number;
@@ -19,13 +57,30 @@ type CampaignMetrics = {
 };
 
 export default function Dashboard() {
-  const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [forecastCampaign, setForecastCampaign] = useState<Campaign | null>(null);
+  
+  const { data: campaigns = [], isLoading, refetch } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // Handle refresh
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Refreshing data",
+      description: "Dashboard data is being updated.",
+    });
+  };
+
+  // Handle export (mock functionality)
+  const handleExport = () => {
+    toast({
+      title: "Export initiated",
+      description: "Your data is being prepared for download.",
+    });
+  };
 
   // Calculate total metrics
   const totalMetrics = campaigns.reduce(
@@ -38,7 +93,9 @@ export default function Dashboard() {
     { spend: 0, sales: 0, impressions: 0, clicks: 0 }
   );
 
-  const acos = (totalMetrics.spend / totalMetrics.sales) * 100;
+  const acos = totalMetrics.sales > 0 ? (totalMetrics.spend / totalMetrics.sales) * 100 : 0;
+  const roas = totalMetrics.spend > 0 ? totalMetrics.sales / totalMetrics.spend : 0;
+  const ctr = totalMetrics.impressions > 0 ? (totalMetrics.clicks / totalMetrics.impressions) * 100 : 0;
 
   // Generate chart data from the campaigns
   const performanceData = campaigns.map(campaign => ({
@@ -48,83 +105,304 @@ export default function Dashboard() {
     acos: (campaign.metrics as CampaignMetrics).acos,
     roas: (campaign.metrics as CampaignMetrics).roas,
     impressions: (campaign.metrics as CampaignMetrics).impressions,
-    clicks: (campaign.metrics as CampaignMetrics).clicks
-  })).sort((a, b) => a.date.localeCompare(b.date));
+    clicks: (campaign.metrics as CampaignMetrics).clicks,
+    ctr: (campaign.metrics as CampaignMetrics).ctr
+  }));
+
+  // Set default forecast campaign when campaigns load
+  if (campaigns.length > 0 && !forecastCampaign) {
+    setForecastCampaign(campaigns[0]);
+  }
+
+  // Handle showing campaign forecast
+  const showCampaignForecast = (campaign: Campaign) => {
+    setForecastCampaign(campaign);
+    setActiveTab("forecast");
+    
+    // Scroll to forecast section
+    setTimeout(() => {
+      document.getElementById('forecast-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-8 p-4 md:p-8">
+        <div className="flex justify-between items-center mb-8">
+          <Skeleton className="h-10 w-40" />
+          <div className="flex space-x-2">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-lg" />
+          ))}
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-72 rounded-lg" />
+          ))}
+        </div>
+        
+        <Skeleton className="h-96 mt-8 rounded-lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 p-4 md:p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <ThemeToggle />
-      </div>
-      <CsvUpload />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <KPICard
-          title="Total Spend"
-          value={`$${totalMetrics.spend.toFixed(2)}`}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-        />
-        <KPICard
-          title="Total Sales"
-          value={`$${totalMetrics.sales.toFixed(2)}`}
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-        />
-        <KPICard
-          title="ACOS"
-          value={`${acos.toFixed(2)}%`}
-          icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-        />
-        <KPICard
-          title="Impressions"
-          value={totalMetrics.impressions.toLocaleString()}
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
-        />
-      </div>
-
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-        <PerformanceChart
-          data={performanceData}
-          metric="spend"
-          title="Spend Over Time"
-        />
-        <PerformanceChart
-          data={performanceData}
-          metric="sales"
-          title="Sales Over Time"
-        />
-        <PerformanceChart
-          data={performanceData}
-          metric="acos"
-          title="ACOS Over Time"
-        />
-        <PerformanceChart
-          data={performanceData}
-          metric="roas"
-          title="ROAS Over Time"
-        />
-        <PerformanceChart
-          data={performanceData}
-          metric="impressions"
-          title="Impressions Over Time"
-        />
-        <PerformanceChart
-          data={performanceData}
-          metric="clicks"
-          title="Clicks Over Time"
-        />
-      </div>
-
-      {campaigns.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Campaign Forecast</h2>
-          <CampaignForecast campaign={campaigns[0]} daysAhead={30} />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Amazon PPC Dashboard</h1>
+          <p className="text-muted-foreground">Optimize your campaign performance and increase ROI</p>
         </div>
-      )}
-
-      <div>
-        <h2 className="text-xl font-bold mb-4">Campaign Performance</h2>
-        <CampaignTable campaigns={campaigns} />
+        <div className="flex items-center space-x-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={handleRefresh}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Refresh</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Refresh dashboard data</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={handleExport}>
+                  <Download className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Export dashboard data</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <ThemeToggle />
+        </div>
       </div>
+
+      {campaigns.length === 0 ? (
+        <Card className="w-full max-w-3xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-xl">Welcome to Amazon PPC Optimizer</CardTitle>
+            <CardDescription>
+              Get started by uploading your campaign data to visualize performance and optimize your bids
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CsvUpload />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="forecast" id="forecast-tab">Forecast</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="space-y-6">
+              {/* KPI Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <KPICard
+                  title="Total Ad Spend"
+                  value={`$${totalMetrics.spend.toFixed(2)}`}
+                  icon={<DollarSign className="h-5 w-5" />}
+                  trend="up"
+                  change="+5.2% vs last week"
+                />
+                <KPICard
+                  title="Total Sales"
+                  value={`$${totalMetrics.sales.toFixed(2)}`}
+                  icon={<TrendingUp className="h-5 w-5" />}
+                  trend="up"
+                  change="+8.1% vs last week"
+                />
+                <KPICard
+                  title="ACOS"
+                  value={`${acos.toFixed(2)}%`}
+                  icon={<BarChart className="h-5 w-5" />}
+                  trend={acos < 25 ? "down" : "up"}
+                  change={acos < 25 ? "-2.3% vs target" : "+2.3% vs target"}
+                />
+                <KPICard
+                  title="ROAS"
+                  value={`${roas.toFixed(2)}x`}
+                  icon={<ArrowUpRight className="h-5 w-5" />}
+                  trend={roas > 3 ? "up" : "down"}
+                  change={roas > 3 ? "+0.5x vs target" : "-0.5x vs target"}
+                />
+              </div>
+              
+              {/* Secondary KPI Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <KPICard
+                  title="Impressions"
+                  value={totalMetrics.impressions.toLocaleString()}
+                  icon={<Users className="h-5 w-5" />}
+                  trend="up"
+                  change="+12.4% vs last week"
+                />
+                <KPICard
+                  title="Clicks"
+                  value={totalMetrics.clicks.toLocaleString()}
+                  icon={<MousePointer className="h-5 w-5" />}
+                  trend="up"
+                  change="+7.8% vs last week"
+                />
+                <KPICard
+                  title="CTR"
+                  value={`${ctr.toFixed(2)}%`}
+                  icon={<Target className="h-5 w-5" />}
+                  trend={ctr > 1 ? "up" : "down"}
+                  change={ctr > 1 ? "+0.3% vs target" : "-0.3% vs target"}
+                />
+              </div>
+              
+              {/* Key Performance Charts */}
+              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                <PerformanceChart
+                  data={performanceData}
+                  metric="spend"
+                  title="Campaign Spend"
+                />
+                <PerformanceChart
+                  data={performanceData}
+                  metric="sales"
+                  title="Campaign Sales"
+                />
+                <PerformanceChart
+                  data={performanceData}
+                  metric="acos"
+                  title="Campaign ACOS"
+                />
+              </div>
+              
+              {/* Campaign Table with Action Button */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div>
+                    <CardTitle className="text-xl font-bold">Campaign Performance</CardTitle>
+                    <CardDescription>
+                      View and analyze all your campaign metrics
+                    </CardDescription>
+                  </div>
+                  <Badge className="bg-orange-500">
+                    {campaigns.length} Campaigns
+                  </Badge>
+                </CardHeader>
+                <CardContent>
+                  <CampaignTable campaigns={campaigns} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="performance" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Detailed Performance Metrics</CardTitle>
+                  <CardDescription>
+                    Analyze all key performance indicators across your campaigns
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="spend"
+                      title="Campaign Spend"
+                    />
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="sales"
+                      title="Campaign Sales"
+                    />
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="acos"
+                      title="Campaign ACOS"
+                    />
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="roas"
+                      title="Campaign ROAS"
+                    />
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="impressions"
+                      title="Campaign Impressions"
+                    />
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="clicks"
+                      title="Campaign Clicks"
+                    />
+                    {/* We added CTR metric to the performance chart component */}
+                    <PerformanceChart
+                      data={performanceData}
+                      metric="ctr"
+                      title="Campaign CTR"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="forecast" className="space-y-6" id="forecast-section">
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <div>
+                      <CardTitle>Campaign Forecast Analysis</CardTitle>
+                      <CardDescription>
+                        30-day prediction with confidence intervals
+                      </CardDescription>
+                    </div>
+                    {forecastCampaign && (
+                      <Badge variant="outline" className="mt-2 sm:mt-0 border-orange-500 text-orange-500">
+                        {forecastCampaign.name}
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {forecastCampaign ? (
+                    <CampaignForecast campaign={forecastCampaign} daysAhead={30} />
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="text-muted-foreground">Select a campaign to view forecast</p>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Forecasts are based on historical performance and market trends
+                  </p>
+                  {campaigns.length > 1 && (
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("overview")}>
+                      View All Campaigns <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 }

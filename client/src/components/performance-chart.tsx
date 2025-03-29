@@ -65,6 +65,12 @@ const metricConfig = {
     formatter: (value: number) => value.toLocaleString(),
     gradientId: "clicks-gradient",
   },
+  ctr: {
+    label: "CTR (%)",
+    color: "hsl(24.6, 95%, 53.1%)", // Orange
+    formatter: (value: number) => `${value.toFixed(2)}%`,
+    gradientId: "ctr-gradient",
+  },
 };
 
 type SortOrder = 'asc' | 'desc';
