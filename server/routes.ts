@@ -60,10 +60,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Parse CSV rows into array of objects
       const rows = fileContent.split('\n')
-        .filter(line => line.trim())
-        .map((line, index) => {
+        .filter((line: string) => line.trim())
+        .map((line: string, index: number) => {
           try {
-            const values = line.split(',').map(val => val.trim());
+            const values = line.split(',').map((val: string) => val.trim());
             
             // Skip header row if present
             if (index === 0 && isNaN(parseFloat(values[3]))) {
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return null;
           }
         })
-        .filter(row => row !== null);
+        .filter((row: any) => row !== null);
 
       const schema = z.array(csvRowSchema);
       const data = schema.parse(rows);

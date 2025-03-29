@@ -12,6 +12,49 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import BidOptimizer from "./bid-optimizer";
 import CampaignForecast from "./campaign-forecast"; // Import the new component
 
+// Create a wrapper component to avoid React Fragment issues
+const CampaignRow = ({ 
+  campaign, 
+  isExpanded, 
+  onToggle 
+}: { 
+  campaign: Campaign, 
+  isExpanded: boolean, 
+  onToggle: () => void 
+}) => (
+  <>
+    <TableRow
+      className="cursor-pointer hover:bg-muted/50"
+      onClick={onToggle}
+      data-campaign-id={campaign.id}
+    >
+      <TableCell>
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </TableCell>
+      <TableCell className="font-medium">{campaign.name}</TableCell>
+      <TableCell>${(campaign.metrics as CampaignMetrics).spend.toFixed(2)}</TableCell>
+      <TableCell>${(campaign.metrics as CampaignMetrics).sales.toFixed(2)}</TableCell>
+      <TableCell>{(campaign.metrics as CampaignMetrics).acos.toFixed(2)}%</TableCell>
+      <TableCell>{(campaign.metrics as CampaignMetrics).roas.toFixed(2)}x</TableCell>
+      <TableCell>{(campaign.metrics as CampaignMetrics).impressions}</TableCell>
+      <TableCell>{(campaign.metrics as CampaignMetrics).clicks}</TableCell>
+      <TableCell>{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
+    </TableRow>
+    {isExpanded && (
+      <TableRow>
+        <TableCell colSpan={9} className="p-4 space-y-4">
+          <BidOptimizer campaignId={campaign.id} />
+          <CampaignForecast campaign={campaign} />
+        </TableCell>
+      </TableRow>
+    )}
+  </>
+);
+
 interface CampaignTableProps {
   campaigns: Campaign[];
 }
@@ -57,36 +100,12 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
         </TableHeader>
         <TableBody>
           {campaigns.map((campaign) => (
-            <React.Fragment key={campaign.id}>
-              <TableRow
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => toggleRow(campaign.id)}
-              >
-                <TableCell>
-                  {expandedRows.has(campaign.id) ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{campaign.name}</TableCell>
-                <TableCell>${(campaign.metrics as CampaignMetrics).spend.toFixed(2)}</TableCell>
-                <TableCell>${(campaign.metrics as CampaignMetrics).sales.toFixed(2)}</TableCell>
-                <TableCell>{(campaign.metrics as CampaignMetrics).acos.toFixed(2)}%</TableCell>
-                <TableCell>{(campaign.metrics as CampaignMetrics).roas.toFixed(2)}x</TableCell>
-                <TableCell>{(campaign.metrics as CampaignMetrics).impressions}</TableCell>
-                <TableCell>{(campaign.metrics as CampaignMetrics).clicks}</TableCell>
-                <TableCell>{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
-              </TableRow>
-              {expandedRows.has(campaign.id) && (
-                <TableRow>
-                  <TableCell colSpan={9} className="p-4 space-y-4">
-                    <BidOptimizer campaignId={campaign.id} />
-                    <CampaignForecast campaign={campaign} />
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
+            <CampaignRow 
+              key={campaign.id}
+              campaign={campaign}
+              isExpanded={expandedRows.has(campaign.id)}
+              onToggle={() => toggleRow(campaign.id)}
+            />
           ))}
         </TableBody>
       </Table>
