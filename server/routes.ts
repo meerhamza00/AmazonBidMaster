@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { csvRowSchema, campaignSchema, ruleSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateBidPrediction } from "@shared/ml/bidOptimizer";
+import { generateCampaignForecast } from "@shared/ml/forecasting";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Campaign routes

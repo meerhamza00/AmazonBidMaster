@@ -4,8 +4,9 @@ import CsvUpload from "@/components/csv-upload";
 import KPICard from "@/components/kpi-card";
 import PerformanceChart from "@/components/performance-chart";
 import CampaignTable from "@/components/campaign-table";
+import CampaignForecast from "@/components/campaign-forecast";
 import { DollarSign, TrendingUp, Users, Activity } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle"; // Added import
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type CampaignMetrics = {
   spend: number;
@@ -112,6 +113,13 @@ export default function Dashboard() {
           title="Clicks Over Time"
         />
       </div>
+
+      {campaigns.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Campaign Forecast</h2>
+          <CampaignForecast campaign={campaigns[0]} daysAhead={30} />
+        </div>
+      )}
 
       <div>
         <h2 className="text-xl font-bold mb-4">Campaign Performance</h2>
