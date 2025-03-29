@@ -113,11 +113,15 @@ export default function PpcExpertChatbot() {
   const sendMessageToConversation = useMutation({
     mutationFn: async ({ message, conversationId }: { message: string; conversationId?: string }) => {
       try {
-        const response = await apiRequest('/api/chat/messages', {
+        // Use the endpoint with conversation ID in the URL path
+        const endpoint = conversationId 
+          ? `/api/chat/messages/${conversationId}`
+          : '/api/chat/messages';
+          
+        const response = await apiRequest(endpoint, {
           method: 'POST',
           data: {
             message,
-            conversationId,
             provider
           }
         });
@@ -135,12 +139,16 @@ export default function PpcExpertChatbot() {
           // Switch to the backup provider
           setProvider(backupProvider as AiProvider);
           
+          // Use the endpoint with conversation ID in the URL path
+          const endpoint = conversationId 
+            ? `/api/chat/messages/${conversationId}`
+            : '/api/chat/messages';
+            
           // Retry with the new provider
-          const retryResponse = await apiRequest('/api/chat/messages', {
+          const retryResponse = await apiRequest(endpoint, {
             method: 'POST',
             data: {
               message,
-              conversationId,
               provider: backupProvider
             }
           });
@@ -182,9 +190,17 @@ export default function PpcExpertChatbot() {
   // Scroll to bottom of messages when they change or when typing status changes
   useEffect(() => {
     if (messagesEndRef.current) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100); // Small delay to ensure content is rendered
+      const scrollContainer = messagesEndRef.current.closest('.scroll-area-viewport');
+      if (scrollContainer) {
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }, 100); // Small delay to ensure content is rendered
+      } else {
+        // Fallback if scroll-area-viewport not found
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     }
   }, [activeConversation, isTyping]);
 
@@ -200,22 +216,38 @@ export default function PpcExpertChatbot() {
       timestamp: Date.now()
     };
     
+    // Store the message before sending to clear the input faster
+    const messageToSend = message;
+    
+    // Clear the input immediately for better UX
+    setMessage('');
+    
+    // Show typing indicator
     setIsTyping(true);
     
     try {
       if (activeConversationId) {
         // Send to existing conversation
         await sendMessageToConversation.mutateAsync({ 
-          message, 
+          message: messageToSend, 
           conversationId: activeConversationId 
         });
       } else {
         // Create a new conversation
-        await createConversation.mutateAsync(message);
+        await createConversation.mutateAsync(messageToSend);
       }
       
-      // Clear the input
-      setMessage('');
+      // Force scroll to bottom after message is sent
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          const scrollContainer = messagesEndRef.current.closest('.scroll-area-viewport');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          } else {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }, 200);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {

@@ -1,0 +1,6 @@
+campaign_name,start_date,end_date,targeting_type,daily_budget,bid,keyword,match_type,impressions,clicks,ctr,cpc,spend,sales,acos,roas
+Example Sponsored Products Auto,2025-01-01,2025-12-31,AUTO,10.00,1.25,,,1545,65,4.2,0.75,48.75,195.00,25.0,4.0
+Example Sponsored Products Manual,2025-01-01,2025-12-31,MANUAL,15.00,1.00,wireless headphones,BROAD,2340,87,3.7,0.85,73.95,221.85,33.3,3.0
+Example Sponsored Products Manual,2025-01-01,2025-12-31,MANUAL,15.00,2.50,"bluetooth speaker",EXACT,1890,65,3.4,1.25,81.25,406.25,20.0,5.0
+Example Sponsored Brands,2025-01-01,2025-12-31,MANUAL,20.00,3.00,gaming accessories,PHRASE,3205,112,3.5,1.45,162.40,649.60,25.0,4.0
+Example Sponsored Display,2025-01-01,2025-12-31,AUTO,8.00,0.95,,,950,24,2.5,0.60,14.40,86.40,16.7,6.0

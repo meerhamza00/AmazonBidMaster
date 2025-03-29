@@ -6,6 +6,8 @@ import { csvRowSchema, campaignSchema, ruleSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateBidPrediction } from "@shared/ml/bidOptimizer";
 import { generateCampaignForecast } from "@shared/ml/forecasting";
+import path from "path";
+import express from "express";
 import { 
   getConversations, 
   getConversation, 
@@ -207,11 +209,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve static files from client assets directory
+  app.use('/src/assets', express.static(path.join(process.cwd(), 'client/src/assets')));
+  
   // Chatbot API endpoints
   app.get("/api/chat/conversations", getConversations);
   app.get("/api/chat/conversations/:id", getConversation);
   app.post("/api/chat/conversations", createConversation);
-  app.post("/api/chat/messages", sendMessage);
+  app.post("/api/chat/messages/:id", sendMessage);
+  app.post("/api/chat/messages", sendMessage); // Keep for backward compatibility
   app.delete("/api/chat/conversations/:id", deleteConversation);
   app.get("/api/chat/models", getModels);
 

@@ -117,7 +117,14 @@ export async function createConversation(req: Request, res: Response) {
 // Send a message and get a response
 export async function sendMessage(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    // Get conversation ID from either params or body
+    let id = req.params.id;
+    
+    // If no ID in params, try to get it from body (for backward compatibility)
+    if (!id && req.body.conversationId) {
+      id = req.body.conversationId;
+    }
+    
     const { message, provider } = req.body;
     
     if (!message) {
@@ -133,6 +140,11 @@ export async function sendMessage(req: Request, res: Response) {
       aiProviderSchema.parse(provider);
     } catch (error) {
       return res.status(400).json({ error: 'Invalid provider' });
+    }
+    
+    // If no conversation ID was provided, return an error
+    if (!id) {
+      return res.status(400).json({ error: 'Conversation ID is required' });
     }
     
     // Get the conversation or return an error

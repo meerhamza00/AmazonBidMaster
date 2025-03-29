@@ -259,7 +259,7 @@ export default function CsvUpload({ onUploadComplete }: CsvUploadProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  href="/templates/amazon_ppc_template.csv"
+                  href="/src/assets/amazon_ppc_template.csv"
                   download="amazon_ppc_template.csv"
                   className="inline-flex items-center text-xs font-medium text-primary hover:underline"
                   onClick={(e) => e.stopPropagation()}
