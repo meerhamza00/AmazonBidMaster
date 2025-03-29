@@ -1,0 +1,151 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+12:36:57 PM [express] serving on port 5000
+12:37:05 PM [express] GET /api/campaigns 304 in 2ms :: []
+12:37:05 PM [express] GET /api/chat/models 304 in 2ms :: [{"id":"openai","name":"OpenAI GPT-4o","conf…
+12:37:05 PM [express] GET /api/chat/conversations 304 in 1ms :: []
+12:37:11 PM [express] GET /api/campaigns 304 in 1ms :: []
+12:37:11 PM [express] GET /api/chat/conversations 304 in 1ms :: []
+12:37:11 PM [express] GET /api/chat/models 304 in 0ms :: [{"id":"openai","name":"OpenAI GPT-4o","conf…
+12:41:11 PM [express] GET /api/chat/conversations 200 in 1ms :: []
+12:41:11 PM [express] GET /api/chat/models 304 in 0ms :: [{"id":"openai","name":"OpenAI GPT-4o","conf…
+12:41:11 PM [express] GET /api/campaigns 200 in 1ms :: []
+12:41:16 PM [express] POST /api/upload-csv 200 in 9ms :: [{"name":"Campaign Test 1","budget":"0.5","s…
+12:41:16 PM [express] GET /api/campaigns 200 in 1ms :: [{"name":"Campaign Test 1","budget":"0.5","sta…
+12:41:30 PM [express] GET /api/rules 304 in 0ms :: []
+Error generating title with Google Generative AI: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:432:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:401:9)
+    at async generateContent (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:865:22)
+    at async GeminiService.generateTitle (/home/runner/workspace/shared/services/gemini-service.ts:76:22)
+    at async createConversation (/home/runner/workspace/server/chat-api.ts:89:15) {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+12:41:49 PM [express] POST /api/chat/conversations 201 in 333ms :: {"id":"be0b3957-f18c-4645-820c-b6a…
+12:41:49 PM [express] GET /api/chat/conversations 200 in 0ms :: [{"id":"be0b3957-f18c-4645-820c-b6a45…
+12:41:49 PM [express] GET /api/chat/conversations/be0b3957-f18c-4645-820c-b6a45f8bfd16 200 in 0ms :: …
+Error calling Google Generative AI: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:432:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:401:9)
+    at async generateContent (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:865:22)
+    at async ChatSession.sendMessage (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:1203:9)
+    at async GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:47:9)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18) {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+Error with gemini service: Error: Failed to get response from Google Gemini: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:63:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18)
+Attempting to use fallback provider: openai
+Error calling OpenAI API: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at Function.generate (/home/runner/workspace/node_modules/openai/src/error.ts:96:14)
+    at OpenAI.makeStatusError (/home/runner/workspace/node_modules/openai/src/core.ts:448:21)
+    at OpenAI.makeRequest (/home/runner/workspace/node_modules/openai/src/core.ts:512:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async OpenAiService.sendMessages (/home/runner/workspace/shared/services/openai-service.ts:33:24)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:199:22) {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '927f71e6298b7687-SEA',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Sat, 29 Mar 2025 12:42:02 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=QDCKsPqucDE_CyKZ_Lj3e2NghlKDAcbIOmwAi.CCTTk-1743252122-1.0.1.1-mxiatFNV5FuZD3EBsD4.mfPlzwnFdITg8kaaWdxqn_2OfHfsZp3gyQh26ynyt809g5eDX2ifH4ODByXYRSA6kchyHM6Rss.l9KGhLwxyx_w; path=/; expires=Sat, 29-Mar-25 13:12:02 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=n9n_5XO3WC1qT3Ysr6TQF2yg1w5nxB.vAEwCoRz.2t8-1743252122658-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_e517cbc53ffaed5f9bfa977e37e5cb81'
+  },
+  request_id: 'req_e517cbc53ffaed5f9bfa977e37e5cb81',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+Fallback provider also failed: Error: Failed to get response from OpenAI: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at OpenAiService.sendMessages (/home/runner/workspace/shared/services/openai-service.ts:44:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:199:22)
+Error processing message: Error: Failed to get response from Google Gemini: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:63:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18)
+12:42:02 PM [express] POST /api/chat/messages 500 in 1927ms :: {"error":"Failed to process message"}
+Error calling Google Generative AI: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:432:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:401:9)
+    at async generateContent (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:865:22)
+    at async ChatSession.sendMessage (file:///home/runner/workspace/node_modules/@google/generative-ai/dist/index.mjs:1203:9)
+    at async GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:47:9)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18) {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+Error with gemini service: Error: Failed to get response from Google Gemini: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:63:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18)
+Attempting to use fallback provider: openai
+Error calling OpenAI API: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at Function.generate (/home/runner/workspace/node_modules/openai/src/error.ts:96:14)
+    at OpenAI.makeStatusError (/home/runner/workspace/node_modules/openai/src/core.ts:448:21)
+    at OpenAI.makeRequest (/home/runner/workspace/node_modules/openai/src/core.ts:512:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async OpenAiService.sendMessages (/home/runner/workspace/shared/services/openai-service.ts:33:24)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:199:22) {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '927f71f89e797687-SEA',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Sat, 29 Mar 2025 12:42:05 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=XU4ypBtLxGCYK._5iBcx_AqWN45jMg6s1JzlxVQ3ETE-1743252125-1.0.1.1-QiGB23p0BcJHQ1upNQyfVzgCyyA.M.evP5oIq0Frz3nbFzcShwxBaYIKBnT6KJvvPwe7LH1ff1Ak0Mgt9t8srcJtYjq_mYYur1pqpD0CMhY; path=/; expires=Sat, 29-Mar-25 13:12:05 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=w6GZemfhOzbMrbGCNe596uf1ioi7Hov.anQRRgxnquM-1743252125627-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_a19ca928bbf0a8c565e4f609475fa33f'
+  },
+  request_id: 'req_a19ca928bbf0a8c565e4f609475fa33f',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+Fallback provider also failed: Error: Failed to get response from OpenAI: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at OpenAiService.sendMessages (/home/runner/workspace/shared/services/openai-service.ts:44:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:199:22)
+Error processing message: Error: Failed to get response from Google Gemini: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at GeminiService.sendMessages (/home/runner/workspace/shared/services/gemini-service.ts:63:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async sendMessage (/home/runner/workspace/server/chat-api.ts:179:18)
+12:42:05 PM [express] POST /api/chat/messages 500 in 1684ms :: {"error":"Failed to process message"}

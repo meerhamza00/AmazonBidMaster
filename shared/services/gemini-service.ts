@@ -22,31 +22,50 @@ export class GeminiService implements AiService {
       throw new Error('Google Gemini client is not configured. Please provide an API key.');
     }
 
+    // Extract system message(s) if present
+    const systemMessages = messages.filter(msg => msg.role === 'system');
+    const conversationMessages = messages.filter(msg => msg.role !== 'system');
+    
+    // Create initial prompt that includes system message
+    let initialPrompt = '';
+    if (systemMessages.length > 0) {
+      initialPrompt = `System Instructions: ${systemMessages.map(msg => msg.content).join('\n\n')}\n\n`;
+    }
+
+    // Initialize the chat with the latest model name
+    // Note: Model names may have changed, using gemini-1.5-pro as default, with fallback to gemini-1.0-pro
+    let modelName = 'gemini-1.5-pro';
+    let model;
+    let chat;
+    
     try {
-      // Extract system message(s) if present
-      const systemMessages = messages.filter(msg => msg.role === 'system');
-      const conversationMessages = messages.filter(msg => msg.role !== 'system');
-      
-      // Create initial prompt that includes system message
-      let initialPrompt = '';
-      if (systemMessages.length > 0) {
-        initialPrompt = `System Instructions: ${systemMessages.map(msg => msg.content).join('\n\n')}\n\n`;
+      // First try with the latest model name
+      try {
+        model = this.client.getGenerativeModel({ model: modelName });
+        chat = model.startChat({
+          generationConfig: {
+            temperature: settings?.temperature || 0.7,
+            maxOutputTokens: settings?.maxTokens || 1024,
+          },
+        });
+      } catch (modelError) {
+        // If the first model fails, try the fallback model
+        console.log(`Model ${modelName} not found, trying fallback model...`);
+        modelName = 'gemini-1.0-pro';
+        model = this.client.getGenerativeModel({ model: modelName });
+        chat = model.startChat({
+          generationConfig: {
+            temperature: settings?.temperature || 0.7,
+            maxOutputTokens: settings?.maxTokens || 1024,
+          },
+        });
       }
-
-      // Initialize the chat
-      const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
-      const chat = model.startChat({
-        generationConfig: {
-          temperature: settings?.temperature || 0.7,
-          maxOutputTokens: settings?.maxTokens || 1024,
-        },
-      });
-
+      
       // Add system message as first user message if it exists
       if (initialPrompt) {
         await chat.sendMessage(initialPrompt);
       }
-
+      
       // Send all messages to the chat in order
       let lastResponse = '';
       for (const msg of conversationMessages) {
@@ -56,7 +75,7 @@ export class GeminiService implements AiService {
         const result = await chat.sendMessage(msg.content);
         lastResponse = result.response.text();
       }
-
+      
       return lastResponse;
     } catch (error: any) {
       console.error('Error calling Google Generative AI:', error);
@@ -70,7 +89,20 @@ export class GeminiService implements AiService {
     }
 
     try {
-      const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
+      // Try with the updated model names first
+      let model;
+      try {
+        model = this.client.getGenerativeModel({ model: 'gemini-1.5-pro' });
+      } catch (error) {
+        try {
+          model = this.client.getGenerativeModel({ model: 'gemini-1.0-pro' });
+        } catch (fallbackError) {
+          // If both fail, just use a generic title
+          console.error('Failed to initialize any Gemini model for title generation:', fallbackError);
+          return 'New conversation';
+        }
+      }
+      
       const prompt = `Generate a short, descriptive title (maximum 6 words) for a conversation that starts with this message: "${userMessage}". The title should be concise but accurately reflect the main topic. Return only the title text with no additional explanation or quotation marks.`;
       
       const result = await model.generateContent(prompt);

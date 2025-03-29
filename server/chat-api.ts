@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { ChatCompletionRequest, ChatMessage, chatMessageSchema } from '../shared/chatbot';
+import { ChatCompletionRequest, ChatMessage, aiProviderSchema, chatMessageSchema } from '../shared/chatbot';
 import { getAiService, createPpcExpertSystemMessage } from '../shared/services/ai-service';
 import { z } from 'zod';
 
@@ -117,97 +117,108 @@ export async function createConversation(req: Request, res: Response) {
 // Send a message and get a response
 export async function sendMessage(req: Request, res: Response) {
   try {
-    const requestSchema = z.object({
-      conversationId: z.string().optional(),
-      message: z.string().min(1),
-      provider: z.string(),
-    });
+    const { id } = req.params;
+    const { message, provider } = req.body;
     
-    const parseResult = requestSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({ error: 'Invalid request' });
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
     }
     
-    const { conversationId, message, provider } = parseResult.data;
+    if (!provider) {
+      return res.status(400).json({ error: 'Provider is required' });
+    }
     
-    // Create new conversation if no ID is provided
-    let conversation;
-    if (!conversationId) {
-      const systemMessage = createChatMessage('system', createPpcExpertSystemMessage());
-      const userMessage = createChatMessage('user', message);
-      
-      const newId = uuidv4();
-      conversation = {
-        id: newId,
-        title: 'New Conversation',
-        messages: [systemMessage, userMessage],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      };
-      
-      conversations.set(newId, conversation);
+    // Validate the provider is one we support
+    try {
+      aiProviderSchema.parse(provider);
+    } catch (error) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+    
+    // Get the conversation or return an error
+    if (!conversations.has(id)) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+    
+    const conversation = conversations.get(id)!;
+    
+    // Add user message to conversation
+    const userMessage = createChatMessage('user', message);
+    
+    // If this is the first message to the conversation, ensure we have a system message
+    if (!conversation.messages.some(msg => msg.role === 'system')) {
+      // Add system message first
+      const systemPrompt = createPpcExpertSystemMessage();
+      const systemMessage = createChatMessage('system', systemPrompt);
+      conversation.messages.push(systemMessage);
+      conversation.messages.push(userMessage);
+      conversation.updatedAt = Date.now();
     } else {
-      // Get existing conversation
-      conversation = conversations.get(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: 'Conversation not found' });
-      }
-      
-      // Add user message to conversation
-      const userMessage = createChatMessage('user', message);
+      // Just add the user message
       conversation.messages.push(userMessage);
       conversation.updatedAt = Date.now();
     }
     
     // Get AI service for the specified provider
-    let aiService;
-    let response;
+    let response = '';
     let usedFallbackProvider = false;
-    let fallbackProvider;
+    let fallbackProvider = '';
+    const fallbackOrder = ['openai', 'anthropic', 'gemini']; // Order of preference for fallbacks
     
-    try {
-      aiService = await getAiService(provider as any);
-      
-      // Check if service is configured (API key available)
-      if (!aiService.isConfigured()) {
-        return res.status(400).json({ 
-          error: `${provider} API key not configured. Please provide the API key.`
-        });
-      }
-      
-      // Try sending messages to the primary AI service
-      response = await aiService.sendMessages(conversation.messages);
-    } catch (error: any) {
-      console.error(`Error with ${provider} service:`, error);
-      
-      // Try to find an alternative provider that is configured
-      if (provider === 'openai') {
-        fallbackProvider = 'anthropic';
-      } else if (provider === 'anthropic') {
-        fallbackProvider = 'gemini';
-      } else {
-        fallbackProvider = 'openai';
-      }
+    // Try each provider in turn until one works or all fail
+    const attemptedProviders = new Set<string>();
+    let currentProvider = provider as string;
+    let success = false;
+    
+    while (!success && attemptedProviders.size < fallbackOrder.length) {
+      attemptedProviders.add(currentProvider);
       
       try {
-        // Get the fallback service
-        console.log(`Attempting to use fallback provider: ${fallbackProvider}`);
-        const fallbackService = await getAiService(fallbackProvider as any);
+        // Get the current AI service
+        const aiService = await getAiService(currentProvider as any);
         
-        if (fallbackService.isConfigured()) {
-          // Try with the fallback service
-          response = await fallbackService.sendMessages(conversation.messages);
-          usedFallbackProvider = true;
-          console.log(`Successfully used fallback provider: ${fallbackProvider}`);
-        } else {
-          // If fallback isn't configured either, throw original error
-          throw error;
+        // Check if service is configured (API key available)
+        if (!aiService.isConfigured()) {
+          console.log(`${currentProvider} API key not configured, trying next provider`);
+          throw new Error(`${currentProvider} API key not configured`);
         }
-      } catch (fallbackError) {
-        // If both primary and fallback fail, return the original error
-        console.error('Fallback provider also failed:', fallbackError);
-        throw error;
+        
+        // Try sending messages to the current AI service
+        response = await aiService.sendMessages(conversation.messages);
+        success = true;
+        
+        // Mark if we're using a fallback provider
+        if (currentProvider !== provider) {
+          usedFallbackProvider = true;
+          fallbackProvider = currentProvider;
+          console.log(`Successfully used fallback provider: ${fallbackProvider}`);
+        }
+      } catch (error: any) {
+        console.error(`Error with ${currentProvider} service:`, error);
+        
+        // Choose the next fallback provider that hasn't been tried yet
+        let foundNext = false;
+        for (const nextProvider of fallbackOrder) {
+          if (!attemptedProviders.has(nextProvider)) {
+            currentProvider = nextProvider;
+            console.log(`Attempting to use fallback provider: ${currentProvider}`);
+            foundNext = true;
+            break;
+          }
+        }
+        
+        // If we've tried all providers, give up
+        if (!foundNext) {
+          break;
+        }
       }
+    }
+    
+    // If we couldn't get a successful response from any provider
+    if (!success) {
+      return res.status(500).json({ 
+        error: "Failed to process message with any available AI provider. Please check API configurations."
+      });
     }
     
     // Add assistant response to conversation
@@ -232,22 +243,30 @@ export async function sendMessage(req: Request, res: Response) {
           conversation.title = title;
         } catch (error) {
           // If title generation fails, try with another provider if possible
-          if (!usedFallbackProvider && fallbackProvider) {
-            try {
-              const backupTitleService = await getAiService(fallbackProvider as any);
-              if (backupTitleService.isConfigured()) {
-                const title = await backupTitleService.generateTitle(message);
-                conversation.title = title;
+          console.error('Primary title generation failed, trying fallback');
+          
+          // Try each provider for title generation
+          for (const backupProvider of fallbackOrder) {
+            if (backupProvider !== titleProvider) {
+              try {
+                const backupTitleService = await getAiService(backupProvider as any);
+                if (backupTitleService.isConfigured()) {
+                  const title = await backupTitleService.generateTitle(message);
+                  if (title) {
+                    conversation.title = title;
+                    break;
+                  }
+                }
+              } catch (backupError) {
+                console.error(`Backup title generation with ${backupProvider} failed`);
+                // Continue to next provider
               }
-            } catch (secondError) {
-              console.error('Backup title generation failed:', secondError);
             }
-          } else {
-            console.error('Error generating title:', error);
           }
         }
       } catch (error) {
         console.error('Error in title generation process:', error);
+        // Just keep the default title
       }
     }
     
@@ -301,9 +320,9 @@ export async function getModels(req: Request, res: Response) {
       },
       {
         id: 'gemini',
-        name: 'Google Gemini Pro',
+        name: 'Google Gemini 1.5 Pro',
         configured: !!process.env.GOOGLE_API_KEY,
-        description: 'Google\'s multimodal AI model with strong reasoning capabilities'
+        description: 'Google\'s latest multimodal AI model with strong reasoning capabilities'
       }
     ];
     
