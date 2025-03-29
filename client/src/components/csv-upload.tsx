@@ -66,7 +66,7 @@ export default function CsvUpload({ onUploadComplete }: CsvUploadProps) {
       setUploadStatus('success');
       
       // Update cached campaign data
-      queryClient.invalidateQueries(['/api/campaigns']);
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
       
       toast({
         title: "Success",

@@ -1,10 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer } from "ws";
 import { storage } from "./storage";
 import { csvRowSchema, campaignSchema, ruleSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateBidPrediction } from "@shared/ml/bidOptimizer";
 import { generateCampaignForecast } from "@shared/ml/forecasting";
+import { 
+  getConversations, 
+  getConversation, 
+  createConversation, 
+  sendMessage, 
+  deleteConversation,
+  getModels
+} from "./chat-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Campaign routes
@@ -198,6 +207,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chatbot API endpoints
+  app.get("/api/chat/conversations", getConversations);
+  app.get("/api/chat/conversations/:id", getConversation);
+  app.post("/api/chat/conversations", createConversation);
+  app.post("/api/chat/messages", sendMessage);
+  app.delete("/api/chat/conversations/:id", deleteConversation);
+  app.get("/api/chat/models", getModels);
+
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Received message:', data);
+        
+        // Handle different message types
+        if (data.type === 'ping') {
+          ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+    
+    // Send welcome message
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ 
+        type: 'info', 
+        message: 'Connected to Amazon PPC Optimizer WebSocket server' 
+      }));
+    }
+  });
   return httpServer;
 }

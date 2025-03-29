@@ -6,6 +6,7 @@ import Navigation from "@/components/navigation";
 import Dashboard from "@/pages/dashboard";
 import Rules from "@/pages/rules";
 import NotFound from "@/pages/not-found";
+import PpcExpertChatbot from "@/components/ppc-expert-chatbot";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <main className="container mx-auto px-4 py-8">
           <Router />
         </main>
+        <PpcExpertChatbot />
       </div>
       <Toaster />
     </QueryClientProvider>
