@@ -26,9 +26,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RuleEditor from "@/components/rule-editor";
+import AdvancedRuleEditor from "@/components/advanced-rule-editor";
 import AdvancedFeatures from "@/components/advanced-features";
 import { 
   Plus, 
@@ -38,7 +40,11 @@ import {
   ArrowUpCircle, 
   ArrowDownCircle, 
   Clock, 
-  BarChart4 
+  BarChart4,
+  Settings,
+  ChevronRight,
+  Zap,
+  Stars
 } from "lucide-react";
 
 export default function Rules() {
@@ -55,8 +61,8 @@ export default function Rules() {
   // Create rule mutation
   const createRule = useMutation({
     mutationFn: async (rule: InsertRule) => {
-      const res = await apiRequest("POST", "/api/rules", rule);
-      return res.json();
+      const response = await apiRequest("POST", "/api/rules", rule);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/rules"] });
@@ -78,8 +84,8 @@ export default function Rules() {
   // Update rule mutation
   const updateRule = useMutation({
     mutationFn: async ({ id, rule }: { id: number; rule: Partial<Rule> }) => {
-      const res = await apiRequest("PATCH", `/api/rules/${id}`, rule);
-      return res.json();
+      const response = await apiRequest("PATCH", `/api/rules/${id}`, rule);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/rules"] });
@@ -256,37 +262,45 @@ export default function Rules() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rules.map((rule) => (
-                      <TableRow key={rule.id}>
-                        <TableCell className="font-medium">{rule.name}</TableCell>
-                        <TableCell className="capitalize">
-                          {rule.conditions[0]?.conditions[0]?.metric || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {rule.conditions[0]?.conditions[0]?.operator?.replace("_", " ") || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {rule.conditions[0]?.conditions[0]?.value || 0}%
-                        </TableCell>
-                        <TableCell>{rule.adjustment}%</TableCell>
-                        <TableCell>
-                          <Switch
-                            checked={rule.isActive}
-                            onCheckedChange={() => handleToggleRule(rule)}
-                            className="data-[state=checked]:bg-orange-500"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingRule(rule)}
-                          >
-                            Edit
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {rules.map((rule) => {
+                      // Type casting to handle the unknown type
+                      const conditions = rule.conditions as any[];
+                      const metric = conditions?.[0]?.conditions?.[0]?.metric || '-';
+                      const operator = conditions?.[0]?.conditions?.[0]?.operator?.replace("_", " ") || '-';
+                      const value = conditions?.[0]?.conditions?.[0]?.value || 0;
+                      
+                      return (
+                        <TableRow key={rule.id}>
+                          <TableCell className="font-medium">{rule.name}</TableCell>
+                          <TableCell className="capitalize">
+                            {metric}
+                          </TableCell>
+                          <TableCell>
+                            {operator}
+                          </TableCell>
+                          <TableCell>
+                            {value}%
+                          </TableCell>
+                          <TableCell>{rule.adjustment}%</TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={rule.isActive}
+                              onCheckedChange={() => handleToggleRule(rule)}
+                              className="data-[state=checked]:bg-orange-500"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingRule(rule)}
+                            >
+                              Edit
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -309,11 +323,33 @@ export default function Rules() {
 
       {/* Create Rule Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Create New Rule</DialogTitle>
+            <DialogDescription>
+              Configure conditions and actions for automated bid adjustments
+            </DialogDescription>
           </DialogHeader>
-          <RuleEditor onSubmit={(data) => createRule.mutate(data)} />
+          <Tabs defaultValue="basic">
+            <TabsList className="mb-4">
+              <TabsTrigger value="basic">Basic Editor</TabsTrigger>
+              <TabsTrigger value="advanced" className="flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5" />
+                Advanced Editor
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basic">
+              <RuleEditor onSubmit={(data) => createRule.mutate(data)} />
+            </TabsContent>
+            
+            <TabsContent value="advanced">
+              <AdvancedRuleEditor 
+                onSubmit={(data) => createRule.mutate(data)}
+                campaigns={[]} 
+              />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
@@ -322,17 +358,42 @@ export default function Rules() {
         open={editingRule !== null}
         onOpenChange={(open) => !open && setEditingRule(null)}
       >
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit Rule</DialogTitle>
+            <DialogDescription>
+              Modify your rule conditions and actions
+            </DialogDescription>
           </DialogHeader>
           {editingRule && (
-            <RuleEditor
-              defaultValues={editingRule}
-              onSubmit={(data) =>
-                updateRule.mutate({ id: editingRule.id, rule: data })
-              }
-            />
+            <Tabs defaultValue="basic">
+              <TabsList className="mb-4">
+                <TabsTrigger value="basic">Basic Editor</TabsTrigger>
+                <TabsTrigger value="advanced" className="flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Advanced Editor
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basic">
+                <RuleEditor
+                  defaultValues={editingRule as any}
+                  onSubmit={(data) =>
+                    updateRule.mutate({ id: editingRule.id, rule: data })
+                  }
+                />
+              </TabsContent>
+              
+              <TabsContent value="advanced">
+                <AdvancedRuleEditor
+                  defaultValues={editingRule as any}
+                  onSubmit={(data) =>
+                    updateRule.mutate({ id: editingRule.id, rule: data })
+                  }
+                  campaigns={[]}
+                />
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
