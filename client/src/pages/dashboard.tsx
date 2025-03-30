@@ -16,11 +16,10 @@ import {
   MousePointer, 
   Target,
   RefreshCw,
-  Download,
   LineChart,
   ChevronRight
 } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+
 import { Button } from "@/components/ui/button";
 import { 
   Card, 
@@ -71,14 +70,6 @@ export default function Dashboard() {
     toast({
       title: "Refreshing data",
       description: "Dashboard data is being updated.",
-    });
-  };
-
-  // Handle export (mock functionality)
-  const handleExport = () => {
-    toast({
-      title: "Export initiated",
-      description: "Your data is being prepared for download.",
     });
   };
   
@@ -180,7 +171,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold mb-1">Amazon PPC Dashboard</h1>
           <p className="text-muted-foreground">Optimize your campaign performance and increase ROI</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -194,22 +185,6 @@ export default function Dashboard() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Export dashboard data</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <ThemeToggle />
         </div>
       </div>
 
