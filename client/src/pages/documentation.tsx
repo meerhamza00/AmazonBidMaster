@@ -256,14 +256,113 @@ export default function Documentation() {
                       
                       <h4>Advanced Rule Customization</h4>
                       <p>
-                        Enhanced rule configuration options:
+                        Our advanced rule customization interface provides sophisticated control over your bid optimization strategies. These powerful features enable you to create precisely targeted rules that respond to complex market conditions and campaign performance patterns.
+                      </p>
+                      
+                      <h5>Why Use Advanced Rule Customization?</h5>
+                      <p>
+                        Standard rule-based optimization is effective for basic scenarios, but Amazon PPC campaigns often require more nuanced approaches for these reasons:
                       </p>
                       <ul>
-                        <li><strong>Conditional Logic:</strong> Create complex rules with AND/OR operators</li>
-                        <li><strong>Time Constraints:</strong> Apply rules based on day of week, hour of day, or season</li>
-                        <li><strong>Bid Adjustment Limits:</strong> Set maximum and minimum bid thresholds</li>
-                        <li><strong>Target Metrics:</strong> Optimize bids toward specific ACoS or ROAS goals</li>
+                        <li><strong>Market Complexity:</strong> Amazon's marketplace has daily, weekly, and seasonal fluctuations that require adaptive bidding strategies</li>
+                        <li><strong>Multi-Factor Decision Making:</strong> Optimal bidding often depends on the interplay of multiple metrics simultaneously (e.g., both ACoS and CTR)</li>
+                        <li><strong>Time Sensitivity:</strong> Different bidding approaches may be needed during peak shopping hours versus off-hours</li>
+                        <li><strong>Campaign Lifecycle:</strong> Optimal strategies differ between new product launches, established products, and seasonal items</li>
                       </ul>
+                      
+                      <h5>Key Advanced Features</h5>
+                      <ul>
+                        <li>
+                          <strong>Multi-Condition Logic:</strong> Create sophisticated rules with nested AND/OR operators that evaluate multiple metrics simultaneously. 
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Example:</em> Increase bids by 10% when (ACoS &lt; 20% AND CTR &gt; 0.5%) OR (ROAS &gt; 5 AND Impressions &lt; 1000)
+                          </p>
+                        </li>
+                        <li>
+                          <strong>Conditional Groups:</strong> Organize related conditions into logical groups for clearer rule structure and more complex decision trees.
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Why it matters:</em> This enables you to create sophisticated bidding strategies that can handle complex scenarios like "increase bids for high-performing products but only if they also have sufficient profit margin"
+                          </p>
+                        </li>
+                        <li>
+                          <strong>Time Constraints:</strong> Apply rules only during specific days of the week or hours of the day.
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Example use case:</em> Increase bids by 15% on weekends when conversion rates are historically higher, or reduce bids during late-night hours when clicks rarely convert to sales
+                          </p>
+                        </li>
+                        <li>
+                          <strong>Rule Impact Simulation:</strong> Preview how your rule will affect campaigns before activating it.
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Business benefit:</em> Test rule effectiveness without risk by seeing which campaigns would be affected and how metrics would change, avoiding unexpected bid adjustments that could waste budget
+                          </p>
+                        </li>
+                        <li>
+                          <strong>Granular Metric Selection:</strong> Choose from an expanded set of performance indicators including lifetime metrics, recent trend data, and custom calculated values.
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Strategic advantage:</em> This allows for more precise targeting of campaigns that need adjustment, rather than applying broad rules that might affect well-performing campaigns unnecessarily
+                          </p>
+                        </li>
+                        <li>
+                          <strong>JSON Rule Visualization:</strong> For technical users, view and edit the complete rule structure in JSON format.
+                          <p className="text-sm text-gray-400 mt-1">
+                            <em>Technical benefit:</em> Enables power users to create extremely complex rules beyond what the UI can easily represent, and facilitates rule copying across different accounts
+                          </p>
+                        </li>
+                      </ul>
+                      
+                      <h5>When to Use Advanced Rules vs. Basic Rules</h5>
+                      <table className="border-collapse table-auto w-full">
+                        <thead>
+                          <tr>
+                            <th className="border-b border-slate-700 p-2">Scenario</th>
+                            <th className="border-b border-slate-700 p-2">Recommended Approach</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="border-b border-slate-700 p-2">New to Amazon PPC</td>
+                            <td className="border-b border-slate-700 p-2">Start with basic rules to establish benchmarks</td>
+                          </tr>
+                          <tr>
+                            <td className="border-b border-slate-700 p-2">Stable product with predictable performance</td>
+                            <td className="border-b border-slate-700 p-2">Basic rules are typically sufficient</td>
+                          </tr>
+                          <tr>
+                            <td className="border-b border-slate-700 p-2">Seasonal products with varying demand</td>
+                            <td className="border-b border-slate-700 p-2">Advanced rules with time constraints</td>
+                          </tr>
+                          <tr>
+                            <td className="border-b border-slate-700 p-2">Competitive product categories</td>
+                            <td className="border-b border-slate-700 p-2">Advanced rules with multiple condition groups</td>
+                          </tr>
+                          <tr>
+                            <td className="border-b border-slate-700 p-2">High-value products with narrow profit margins</td>
+                            <td className="border-b border-slate-700 p-2">Advanced rules with precise metric targeting</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      
+                      <h5>Performance Expectations</h5>
+                      <p>
+                        Clients using advanced rule customization typically report:
+                      </p>
+                      <ul>
+                        <li><strong>10-15% improvement in ROAS</strong> compared to basic rule optimization</li>
+                        <li><strong>Reduced bid volatility</strong> through more precise targeting conditions</li>
+                        <li><strong>Lower wasted ad spend</strong> by automatically adjusting bids during low-converting periods</li>
+                        <li><strong>More consistent performance</strong> across seasonal fluctuations</li>
+                      </ul>
+                      
+                      <div className="bg-orange-950/30 p-4 rounded-lg border border-orange-500/30 mt-4">
+                        <h5 className="flex items-center text-orange-400">
+                          <Lightbulb className="h-5 w-5 mr-2" />
+                          Pro Tip
+                        </h5>
+                        <p className="text-sm mt-1">
+                          Start by creating a duplicate of your best-performing basic rule, then enhance it with advanced conditions. Run both rules in parallel (on different campaigns) to compare performance before fully transitioning to advanced rules.
+                        </p>
+                      </div>
+                      
                       
                       <h4>Bid Optimizer</h4>
                       <p>
@@ -703,7 +802,92 @@ export default function Documentation() {
                     <div className="ml-10 space-y-4 prose dark:prose-invert max-w-none">
                       <p>Leverage the advanced visualization and analysis capabilities to gain deeper insights:</p>
                       
-                      <ol>
+                      <h4 className="text-lg font-medium mt-4">Advanced Rule Customization</h4>
+                      <p className="mb-3">
+                        To access and use the advanced rule customization features for sophisticated bid management:
+                      </p>
+                      <ol className="list-decimal space-y-3">
+                        <li>
+                          <strong>Navigate to Rules:</strong>
+                          <p>Go to the "Rules" section in the main navigation.</p>
+                        </li>
+                        <li>
+                          <strong>Create or Edit a Rule:</strong>
+                          <p>Click "Create Rule" or select "Edit" on an existing rule.</p>
+                        </li>
+                        <li>
+                          <strong>Switch to Advanced Editor:</strong>
+                          <p>In the rule dialog, select the "Advanced Editor" tab (look for the ✨ sparkles icon).</p>
+                        </li>
+                        <li>
+                          <strong>Build Complex Conditions:</strong>
+                          <p>Use the condition builder to create nested logic groups with AND/OR operators.</p>
+                          <div className="bg-black/20 p-3 rounded-md mt-2 text-sm">
+                            <p className="text-gray-300 italic">Example workflow:</p>
+                            <ul className="list-disc mt-1 space-y-1">
+                              <li>Add a condition group</li>
+                              <li>Select relevant metrics (ACoS, ROAS, CTR, etc.)</li>
+                              <li>Choose appropriate operators (greater than, less than, etc.)</li>
+                              <li>Set threshold values</li>
+                              <li>Add additional conditions with + button</li>
+                              <li>Add nested condition groups as needed</li>
+                            </ul>
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Set Time Constraints:</strong>
+                          <p>Specify days of the week and time ranges when the rule should be active.</p>
+                          <div className="bg-black/20 p-3 rounded-md mt-2 text-sm">
+                            <p>
+                              ⚠️ <strong>Important:</strong> Time constraints are particularly valuable for:
+                            </p>
+                            <ul className="list-disc mt-1 space-y-1 text-gray-300">
+                              <li>Products with peak shopping hours (e.g., food delivery during meal times)</li>
+                              <li>Different bid strategies for weekdays vs. weekends</li>
+                              <li>Seasonal adjustments for holiday periods</li>
+                            </ul>
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Preview Rule Impact:</strong>
+                          <p>Use the Rule Impact Simulator to see how your rule will affect existing campaigns.</p>
+                          <div className="bg-orange-500/10 p-3 rounded-md mt-2 text-sm border border-orange-500/20">
+                            <p className="text-orange-400 font-medium">Pro Tip:</p>
+                            <p className="text-gray-300 mt-1">
+                              Always use the Rule Impact Simulator before saving complex rules. This helps identify any unintended consequences and ensures the rule behaves as expected across your campaign portfolio.
+                            </p>
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Save and Activate:</strong>
+                          <p>Once you're satisfied with the rule configuration, save it and toggle it to active status.</p>
+                        </li>
+                      </ol>
+                      
+                      <h4 className="text-lg font-medium mt-6">Rule Optimization Strategy</h4>
+                      <p className="mb-3">
+                        For best results when using advanced rules:
+                      </p>
+                      <ul className="list-disc space-y-2">
+                        <li>
+                          <strong>Start Simple:</strong> Begin with one or two condition groups before building more complex rules
+                        </li>
+                        <li>
+                          <strong>Test on Limited Campaigns:</strong> Apply new advanced rules to a subset of campaigns first
+                        </li>
+                        <li>
+                          <strong>Monitor Performance:</strong> Check rule impact after 5-7 days before expanding to more campaigns
+                        </li>
+                        <li>
+                          <strong>Iterate Gradually:</strong> Make incremental improvements rather than dramatic rule changes
+                        </li>
+                        <li>
+                          <strong>Combine with Forecasting:</strong> Use campaign forecasts to validate your rule strategies
+                        </li>
+                      </ul>
+                      
+                      <h4 className="text-lg font-medium mt-6">Other Visualization Features</h4>
+                      <ol className="list-decimal space-y-3">
                         <li>
                           <strong>Access Advanced Features:</strong>
                           <p>Click on "Advanced Features" in the main navigation or dashboard section.</p>

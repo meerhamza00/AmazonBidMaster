@@ -61,7 +61,10 @@ export default function Rules() {
   // Create rule mutation
   const createRule = useMutation({
     mutationFn: async (rule: InsertRule) => {
-      const response = await apiRequest("POST", "/api/rules", rule);
+      const response = await apiRequest<Rule>("/api/rules", { 
+        method: "POST", 
+        data: rule 
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -84,7 +87,10 @@ export default function Rules() {
   // Update rule mutation
   const updateRule = useMutation({
     mutationFn: async ({ id, rule }: { id: number; rule: Partial<Rule> }) => {
-      const response = await apiRequest("PATCH", `/api/rules/${id}`, rule);
+      const response = await apiRequest<Rule>(`/api/rules/${id}`, {
+        method: "PATCH",
+        data: rule
+      });
       return response.data;
     },
     onSuccess: () => {
