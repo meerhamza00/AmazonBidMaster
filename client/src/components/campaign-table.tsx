@@ -17,7 +17,7 @@ import {
   PaginationPrevious 
 } from "@/components/ui/pagination";
 import { type Campaign } from "@shared/schema";
-import { ChevronDown, ChevronRight, ChevronUp, Filter } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronUp, Download, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BidOptimizer from "./bid-optimizer";
 import CampaignForecast from "./campaign-forecast"; // Import the new component
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExportMenu } from "./ui/export-menu";
 
 // Create a wrapper component to avoid React Fragment issues
 const CampaignRow = ({ 
@@ -192,8 +193,29 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
       : <ChevronDown className="h-4 w-4 inline ml-1" />;
   };
 
+  // Define available metrics for export
+  const availableMetrics = [
+    'name',
+    'spend',
+    'sales',
+    'acos',
+    'roas',
+    'impressions',
+    'clicks',
+    'ctr'
+  ];
+
   return (
     <div className="space-y-4">
+      <div className="flex justify-between mb-4">
+        <h2 className="text-2xl font-bold">Campaign Performance</h2>
+        <ExportMenu 
+          reportType="campaign-performance"
+          data={{ campaigns: sortedCampaigns }}
+          campaigns={campaigns}
+          metrics={availableMetrics}
+        />
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

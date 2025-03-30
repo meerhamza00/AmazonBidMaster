@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { BidPrediction } from "@shared/ml/bidOptimizer";
-import { ArrowUpCircle, ArrowDownCircle, AlertCircle } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, AlertCircle, Download } from "lucide-react";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 export default function BidOptimizer({ campaignId }: { campaignId: number }) {
   const { data: prediction, isLoading } = useQuery<BidPrediction>({
@@ -97,6 +98,27 @@ export default function BidOptimizer({ campaignId }: { campaignId: number }) {
           </div>
         </div>
       </CardContent>
+      <CardFooter className="border-t bg-black/20 flex justify-between items-center px-6 py-3">
+        <span className="text-xs text-muted-foreground">
+          Last updated: {new Date().toLocaleString()}
+        </span>
+        <ExportMenu
+          reportType="bid-optimization"
+          data={{ 
+            recommendations: [
+              {
+                campaignId: prediction.campaignId,
+                currentBid: prediction.currentBid,
+                suggestedBid: prediction.suggestedBid,
+                confidence: prediction.confidence,
+                metrics: prediction.metrics
+              }
+            ]
+          }}
+          metrics={['currentBid', 'suggestedBid', 'confidence', 'acos', 'roas', 'ctr']}
+          triggerClassName="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
+        />
+      </CardFooter>
     </Card>
   );
 }

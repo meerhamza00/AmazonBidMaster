@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RuleEditor from "@/components/rule-editor";
 import AdvancedRuleEditor from "@/components/advanced-rule-editor";
 import AdvancedFeatures from "@/components/advanced-features";
+import { ExportMenu } from "@/components/ui/export-menu";
 import { 
   Plus, 
   AlertCircle, 
@@ -44,7 +45,8 @@ import {
   Settings,
   ChevronRight,
   Zap,
-  Stars
+  Stars,
+  Download
 } from "lucide-react";
 
 export default function Rules() {
@@ -155,10 +157,17 @@ export default function Rules() {
             Create and manage intelligent automation rules for your campaigns
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Rule
-        </Button>
+        <div className="flex gap-2">
+          <ExportMenu 
+            reportType="rule-analysis"
+            data={{ rules }}
+            metrics={['name', 'description', 'action', 'adjustment', 'isActive', 'priority']}
+          />
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Rule
+          </Button>
+        </div>
       </div>
       
       {/* Rules Statistics Cards */}
