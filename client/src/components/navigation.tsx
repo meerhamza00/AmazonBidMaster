@@ -61,7 +61,7 @@ export default function Navigation() {
       icon: BookOpen,
     },
     {
-      href: "#",
+      href: "/support",
       label: "Support",
       icon: UserRound,
     }
