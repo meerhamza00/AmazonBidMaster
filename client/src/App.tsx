@@ -8,6 +8,8 @@ import Dashboard from "@/pages/dashboard";
 import Rules from "@/pages/rules";
 import Documentation from "@/pages/documentation";
 import Support from "@/pages/support";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/terms-of-service";
 import NotFound from "@/pages/not-found";
 import PpcExpertChatbot from "@/components/ppc-expert-chatbot";
 
@@ -18,6 +20,8 @@ function Router() {
       <Route path="/rules" component={Rules} />
       <Route path="/documentation" component={Documentation} />
       <Route path="/support" component={Support} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/terms-of-service" component={TermsOfService} />
       <Route component={NotFound} />
     </Switch>
   );

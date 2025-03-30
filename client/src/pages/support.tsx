@@ -521,7 +521,7 @@ export default function Support() {
                 </div>
                 
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Account Manager</span>
+                  <span className="text-sm text-muted-foreground">Founder</span>
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2 text-orange-500" />
                     <span className="font-medium">Meer Hamza</span>

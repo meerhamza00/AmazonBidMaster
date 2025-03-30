@@ -91,7 +91,7 @@ export default function Footer() {
                 <span className="text-muted-foreground">+1 (555) 123-4567</span>
               </li>
               <li className="text-muted-foreground">
-                <span className="block">Account Manager:</span>
+                <span className="block">Founder:</span>
                 <span className="font-medium">Meer Hamza</span>
               </li>
             </ul>
@@ -103,14 +103,14 @@ export default function Footer() {
             &copy; {currentYear} Ecom Hawks. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+            <a href="/terms-of-service" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
               Terms of Service
             </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+            <a href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
               Privacy Policy
             </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-              Sitemap
+            <a href="/documentation" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+              Documentation
             </a>
           </div>
         </div>
