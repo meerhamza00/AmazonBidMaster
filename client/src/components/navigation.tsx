@@ -73,11 +73,13 @@ export default function Navigation() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <div className="flex items-center mr-4">
-              <BarChart3 className="h-6 w-6 text-orange-500 mr-2" />
-              <h1 className="text-xl font-bold hidden sm:inline-block">Amazon PPC Optimizer</h1>
-              <h1 className="text-xl font-bold sm:hidden">PPC Optimizer</h1>
-            </div>
+            <Link href="/">
+              <div className="flex items-center mr-4 cursor-pointer">
+                <BarChart3 className="h-6 w-6 text-orange-500 mr-2" />
+                <h1 className="text-xl font-bold hidden sm:inline-block">Amazon PPC Optimizer</h1>
+                <h1 className="text-xl font-bold sm:hidden">PPC Optimizer</h1>
+              </div>
+            </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex space-x-1">

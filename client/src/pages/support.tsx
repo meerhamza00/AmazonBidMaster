@@ -118,7 +118,7 @@ export default function Support() {
               <div>
                 <h3 className="font-medium">Email Support</h3>
                 <p className="text-sm text-muted-foreground">
-                  support@ppcoptimizer.com
+                  support@ecomhawks.com
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Response within 24 hours
@@ -513,10 +513,10 @@ export default function Support() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Account Type</span>
+                  <span className="text-sm text-muted-foreground">Company</span>
                   <div className="flex items-center">
                     <Building className="h-4 w-4 mr-2 text-orange-500" />
-                    <span className="font-medium">Professional Plan</span>
+                    <span className="font-medium">Ecom Hawks</span>
                   </div>
                 </div>
                 
@@ -524,7 +524,7 @@ export default function Support() {
                   <span className="text-sm text-muted-foreground">Account Manager</span>
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2 text-orange-500" />
-                    <span className="font-medium">Sarah Johnson</span>
+                    <span className="font-medium">Meer Hamza</span>
                   </div>
                 </div>
                 

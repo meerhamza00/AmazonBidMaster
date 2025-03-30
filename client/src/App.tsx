@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Navigation from "@/components/navigation";
+import Footer from "@/components/footer";
 import Dashboard from "@/pages/dashboard";
 import Rules from "@/pages/rules";
 import Documentation from "@/pages/documentation";
@@ -25,11 +26,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 flex-grow">
           <Router />
         </main>
+        <Footer />
         <PpcExpertChatbot />
       </div>
       <Toaster />
