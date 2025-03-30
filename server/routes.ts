@@ -6,6 +6,7 @@ import { csvRowSchema, campaignSchema, ruleSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateBidPrediction } from "@shared/ml/bidOptimizer";
 import { generateCampaignForecast } from "@shared/ml/forecasting";
+import { validateRule } from "@shared/services/rule-validation-service";
 import path from "path";
 import express from "express";
 import { 
@@ -47,6 +48,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error) {
       res.status(400).json({ error: "Invalid rule data" });
+    }
+  });
+  
+  // Rule validation endpoint
+  app.post("/api/rules/validate", async (req, res) => {
+    try {
+      // First validate the rule structure
+      const ruleResult = ruleSchema.safeParse(req.body);
+      if (!ruleResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid rule structure", 
+          details: ruleResult.error
+        });
+      }
+      
+      // Get all campaigns and existing rules
+      const [campaigns, existingRules] = await Promise.all([
+        storage.getCampaigns(),
+        storage.getRules()
+      ]);
+      
+      // Validate the rule against campaigns
+      const validationResult = validateRule(
+        ruleResult.data, 
+        campaigns, 
+        existingRules
+      );
+      
+      res.json(validationResult);
+    } catch (error) {
+      console.error("Error validating rule:", error);
+      res.status(500).json({ error: "Failed to validate rule" });
     }
   });
 
