@@ -53,10 +53,10 @@ export default function Navigation() {
     }
   ];
 
-  // Helper items (could be implemented later)
+  // Helper items
   const helpNavItems: NavItem[] = [
     {
-      href: "#",
+      href: "/documentation",
       label: "Documentation",
       icon: BookOpen,
     },

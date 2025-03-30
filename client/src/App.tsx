@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Navigation from "@/components/navigation";
 import Dashboard from "@/pages/dashboard";
 import Rules from "@/pages/rules";
+import Documentation from "@/pages/documentation";
 import NotFound from "@/pages/not-found";
 import PpcExpertChatbot from "@/components/ppc-expert-chatbot";
 
@@ -13,6 +14,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/rules" component={Rules} />
+      <Route path="/documentation" component={Documentation} />
       <Route component={NotFound} />
     </Switch>
   );
