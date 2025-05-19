@@ -16,7 +16,7 @@ A comprehensive Amazon PPC campaign management and optimization platform with ML
 - **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI, Recharts
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
-- **AI/ML**: OpenAI, Anthropic, Google Gemini APIs for chatbot, custom ML models for bid optimization
+- **AI/ML**: Google Gemini (default), OpenAI, Anthropic APIs for chatbot, custom ML models for bid optimization
 
 ## Project Structure
 

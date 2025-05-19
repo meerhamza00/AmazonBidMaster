@@ -51,7 +51,7 @@ interface ConversationListItem {
 
 export default function PpcExpertChatbot() {
   const [message, setMessage] = useState('');
-  const [provider, setProvider] = useState<AiProvider>('openai');
+  const [provider, setProvider] = useState<AiProvider>('gemini');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
