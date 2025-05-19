@@ -385,7 +385,8 @@ The project follows a clean architecture approach with clear separation of conce
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Documentation
-[Wiki](https://github.com/meerhamza00/AmazonBidMaster/wiki)
+
+[Wiki Docs](https://github.com/meerhamza00/AmazonBidMaster/wiki) (Content for the wiki pages is available in the WIKI.md file)
 
 ## Acknowledgements
 
@@ -394,3 +395,40 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - OpenAI (https://openai.com/) - AI services
 - Anthropic (https://www.anthropic.com/) - AI services
 - Google Gemini (https://ai.google.dev/) - AI services
+
+</file_content>
+
+IMPORTANT: For any future changes to this file, use the final_file_content shown above as your reference. This content reflects the current state of the file, including any auto-formatting (e.g., if you used single quotes but the formatter converted them to double quotes). Always base your SEARCH/REPLACE operations on this final version to ensure accuracy.
+
+<environment_details>
+# VSCode Visible Files
+../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/0
+../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/1
+../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/2
+../../../../response_7762515e-da2b-480f-89f6-a34594f7f323/0
+../../../../response_82ec5143-3619-4939-97fb-bc73c8a4ef86/0
+../../../../response_82ec5143-3619-4939-97fb-bc73c8a4ef86/0
+README.md
+WIKI.md
+
+# VSCode Open Tabs
+.env
+client/src/components/ppc-expert-chatbot.tsx
+server/src/controllers/chat.controller.ts
+server/src/routes/chat.routes.ts
+server/src/services/chat.service.ts
+server/src/system-prompt.txt
+WIKI.md
+README.md
+shared/services/gemini-service.refactored.ts
+shared/services/gemini-service.ts
+
+# Current Time
+19/05/2025, 7:31:25 pm (Asia/Karachi, UTC+5:00)
+
+# Context Window Usage
+222,180 / 1,048.576K tokens used (21%)
+
+# Current Mode
+ACT MODE
+</environment_details>
