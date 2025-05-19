@@ -4,6 +4,46 @@
 
 Welcome to the Amazon Bid Master wiki! This wiki provides comprehensive documentation for the project, including installation instructions, configuration details, usage examples, and more.
 
+Amazon Bid Master is a comprehensive Amazon PPC campaign management and optimization platform designed to help Amazon sellers and agencies maximize their advertising ROI. It leverages machine learning-powered bid recommendations, automated rules, and performance forecasting to streamline campaign management, improve ad performance, and drive sales growth. This platform is ideal for Amazon PPC managers, agencies, and sellers who want to automate and optimize their advertising efforts.
+
+## What is Amazon Bid Master?
+
+Amazon Bid Master is an end-to-end solution for managing and optimizing Amazon PPC campaigns. It provides a suite of tools and features that help users to:
+
+*   Automate bid adjustments based on performance metrics.
+*   Improve ad performance and reduce advertising costs.
+*   Forecast future campaign performance with confidence intervals.
+*   Get insights and recommendations from an AI assistant.
+*   Easily import campaign data and export reports.
+
+## Why is this app needed?
+
+Managing Amazon PPC campaigns can be a complex and time-consuming task. Amazon Bid Master simplifies this process by automating many of the tasks involved in campaign management, such as bid adjustments, rule creation, and performance forecasting. This allows users to focus on other important aspects of their business, such as product development and customer service.
+
+## Who should use this app?
+
+Amazon Bid Master is designed for:
+
+*   Amazon PPC Managers: Professionals who manage Amazon PPC campaigns for businesses.
+*   Agencies: Marketing agencies that provide Amazon PPC services to their clients.
+*   Amazon Sellers: Businesses that sell products on Amazon and want to optimize their advertising efforts.
+
+## Features
+
+- **Campaign Management**: View and analyze all your Amazon PPC campaigns in one place.
+- **ML-Powered Bid Optimization**: Get intelligent bid recommendations based on campaign performance.
+- **Automated Rules**: Create custom rules to automate bid adjustments based on performance metrics.
+- **Performance Forecasting**: Predict future campaign performance with confidence intervals.
+- **PPC Expert Chatbot**: Get insights and recommendations from an AI assistant.
+- **CSV Import/Export**: Easily import campaign data and export reports.
+
+## Tech Stack
+
+- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI, Recharts
+- **Backend**: Node.js, Express, TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **AI/ML**: Google Gemini (default), OpenAI, Anthropic APIs for chatbot, custom ML models for bid optimization
+
 ## Getting Started
 
 ### Installation
