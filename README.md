@@ -384,8 +384,8 @@ The project follows a clean architecture approach with clear separation of conce
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Repository
-[https://github.com/meerhamza00/AmazonBidMaster](https://github.com/meerhamza00/AmazonBidMaster)
+## Documentation
+[Wiki](https://github.com/meerhamza00/AmazonBidMaster/wiki)
 
 ## Acknowledgements
 
