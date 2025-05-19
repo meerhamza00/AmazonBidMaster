@@ -408,7 +408,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Documentation
 
-[Wiki Docs](https://github.com/meerhamza00/AmazonBidMaster/wiki) (Content for the wiki pages is available in the WIKI.md file)
+[Wiki Docs](https://github.com/meerhamza00/AmazonBidMaster/blob/main/WIKI.md) (Content for the wiki pages is available in the WIKI.md file)
 
 ## Acknowledgements
 
