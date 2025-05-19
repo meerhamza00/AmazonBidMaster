@@ -1,6 +1,28 @@
 # Amazon Bid Master
 
-A comprehensive Amazon PPC campaign management and optimization platform with ML-powered bid recommendations, automated rules, and performance forecasting.
+A comprehensive Amazon PPC campaign management and optimization platform designed to help Amazon sellers and agencies maximize their advertising ROI. It leverages machine learning-powered bid recommendations, automated rules, and performance forecasting to streamline campaign management, improve ad performance, and drive sales growth. This platform is ideal for Amazon PPC managers, agencies, and sellers who want to automate and optimize their advertising efforts.
+
+## What is Amazon Bid Master?
+
+Amazon Bid Master is an end-to-end solution for managing and optimizing Amazon PPC campaigns. It provides a suite of tools and features that help users to:
+
+*   Automate bid adjustments based on performance metrics.
+*   Improve ad performance and reduce advertising costs.
+*   Forecast future campaign performance with confidence intervals.
+*   Get insights and recommendations from an AI assistant.
+*   Easily import campaign data and export reports.
+
+## Why is this app needed?
+
+Managing Amazon PPC campaigns can be a complex and time-consuming task. Amazon Bid Master simplifies this process by automating many of the tasks involved in campaign management, such as bid adjustments, rule creation, and performance forecasting. This allows users to focus on other important aspects of their business, such as product development and customer service.
+
+## Who should use this app?
+
+Amazon Bid Master is designed for:
+
+*   Amazon PPC Managers: Professionals who manage Amazon PPC campaigns for businesses.
+*   Agencies: Marketing agencies that provide Amazon PPC services to their clients.
+*   Amazon Sellers: Businesses that sell products on Amazon and want to optimize their advertising efforts.
 
 ## Features
 
@@ -395,40 +417,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - OpenAI (https://openai.com/) - AI services
 - Anthropic (https://www.anthropic.com/) - AI services
 - Google Gemini (https://ai.google.dev/) - AI services
-
-</file_content>
-
-IMPORTANT: For any future changes to this file, use the final_file_content shown above as your reference. This content reflects the current state of the file, including any auto-formatting (e.g., if you used single quotes but the formatter converted them to double quotes). Always base your SEARCH/REPLACE operations on this final version to ensure accuracy.
-
-<environment_details>
-# VSCode Visible Files
-../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/0
-../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/1
-../../../../response_7e5015ad-2a41-4c5f-852f-ffde06b592e9/2
-../../../../response_7762515e-da2b-480f-89f6-a34594f7f323/0
-../../../../response_82ec5143-3619-4939-97fb-bc73c8a4ef86/0
-../../../../response_82ec5143-3619-4939-97fb-bc73c8a4ef86/0
-README.md
-WIKI.md
-
-# VSCode Open Tabs
-.env
-client/src/components/ppc-expert-chatbot.tsx
-server/src/controllers/chat.controller.ts
-server/src/routes/chat.routes.ts
-server/src/services/chat.service.ts
-server/src/system-prompt.txt
-WIKI.md
-README.md
-shared/services/gemini-service.refactored.ts
-shared/services/gemini-service.ts
-
-# Current Time
-19/05/2025, 7:31:25 pm (Asia/Karachi, UTC+5:00)
-
-# Context Window Usage
-222,180 / 1,048.576K tokens used (21%)
-
-# Current Mode
-ACT MODE
-</environment_details>
