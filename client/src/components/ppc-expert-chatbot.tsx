@@ -38,6 +38,7 @@ interface AiModel {
   name: string;
   configured: boolean;
   description: string;
+  type: 'reasoning' | 'chat-based';
 }
 
 // Type for conversation list item
@@ -62,8 +63,11 @@ export default function PpcExpertChatbot() {
   const { data: models = [] } = useQuery({
     queryKey: ['/api/chat/models'],
     queryFn: async () => {
-      const response = await apiRequest<AiModel[]>('/api/chat/models');
-      return response.data;
+      const response = await apiRequest<Omit<AiModel, 'type'>[]>('/api/chat/models');
+      return response.data.map(model => ({
+        ...model,
+        type: 'chat-based' as const
+      }));
     }
   });
 
@@ -297,7 +301,8 @@ export default function PpcExpertChatbot() {
     id: model.id,
     name: model.name,
     configured: model.configured,
-    description: model.description
+    description: model.description,
+    type: model.type
   }));
 
   // Render message content with line breaks
