@@ -72,7 +72,8 @@ The project follows a clean architecture approach with clear separation of conce
    OPENAI_API_KEY=your_openai_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
    GOOGLE_API_KEY=your_google_api_key
-   ```
+
+**Note:** The AI services require the API keys to be set in the `.env` file.
 
 4. Start the development server:
    ```
@@ -147,6 +148,9 @@ The project follows a clean architecture approach with clear separation of conce
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Repository
+[https://github.com/meerhamza00/AmazonBidMaster](https://github.com/meerhamza00/AmazonBidMaster)
 
 ## Acknowledgements
 
