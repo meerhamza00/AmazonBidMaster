@@ -29,9 +29,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ExportMenu } from "./ui/export-menu";
+import { shortenString } from "../lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Create a wrapper component to avoid React Fragment issues
-const CampaignRow = ({ 
+const CampaignRow = ({
   campaign, 
   isExpanded, 
   onToggle 
@@ -42,29 +49,40 @@ const CampaignRow = ({
 }) => (
   <>
     <TableRow
-      className="cursor-pointer hover:bg-muted/50"
+      className="cursor-pointer hover:bg-muted/50 bg-background"
       onClick={onToggle}
       data-campaign-id={campaign.id}
     >
       <TableCell>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 text-foreground" />
         ) : (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 text-foreground" />
         )}
       </TableCell>
-      <TableCell className="font-medium">{campaign.name}</TableCell>
-      <TableCell>${(campaign.metrics as CampaignMetrics).spend.toFixed(2)}</TableCell>
-      <TableCell>${(campaign.metrics as CampaignMetrics).sales.toFixed(2)}</TableCell>
-      <TableCell>{(campaign.metrics as CampaignMetrics).acos.toFixed(2)}%</TableCell>
-      <TableCell>{(campaign.metrics as CampaignMetrics).roas.toFixed(2)}x</TableCell>
-      <TableCell>{(campaign.metrics as CampaignMetrics).impressions}</TableCell>
-      <TableCell>{(campaign.metrics as CampaignMetrics).clicks}</TableCell>
-      <TableCell>{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
+      <TableCell className="font-medium text-foreground">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>{shortenString(campaign.name, 35)}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{campaign.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </TableCell>
+      <TableCell className="text-foreground">${(campaign.metrics as CampaignMetrics).spend.toFixed(2)}</TableCell>
+      <TableCell className="text-foreground">${(campaign.metrics as CampaignMetrics).sales.toFixed(2)}</TableCell>
+      <TableCell className="text-foreground">{(campaign.metrics as CampaignMetrics).acos.toFixed(2)}%</TableCell>
+      <TableCell className="text-foreground">{(campaign.metrics as CampaignMetrics).roas.toFixed(2)}x</TableCell>
+      <TableCell className="text-foreground">{(campaign.metrics as CampaignMetrics).impressions}</TableCell>
+      <TableCell className="text-foreground">{(campaign.metrics as CampaignMetrics).clicks}</TableCell>
+      <TableCell className="text-foreground">{(campaign.metrics as CampaignMetrics).ctr.toFixed(2)}%</TableCell>
     </TableRow>
     {isExpanded && (
-      <TableRow>
-        <TableCell colSpan={9} className="p-4 space-y-4">
+      <TableRow className="bg-background">
+        <TableCell colSpan={9} className="p-4 space-y-4 bg-background text-foreground">
           <BidOptimizer campaignId={campaign.id} />
           <CampaignForecast campaign={campaign} />
         </TableCell>
@@ -189,8 +207,8 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
     if (sortField !== field) return null;
     
     return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 inline ml-1" /> 
-      : <ChevronDown className="h-4 w-4 inline ml-1" />;
+      ? <ChevronUp className="h-4 w-4 inline ml-1 text-primary" /> 
+      : <ChevronDown className="h-4 w-4 inline ml-1 text-primary" />;
   };
 
   // Define available metrics for export
@@ -208,7 +226,7 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between mb-4">
-        <h2 className="text-2xl font-bold">Campaign Performance</h2>
+        <h2 className="text-2xl font-bold text-foreground">Campaign Performance</h2>
         <ExportMenu 
           reportType="campaign-performance"
           data={{ campaigns: sortedCampaigns }}
@@ -216,58 +234,106 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
           metrics={availableMetrics}
         />
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-background">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="border-b border-border">
               <TableHead className="w-[40px]"></TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('name')}
               >
-                Campaign Name <SortIndicator field="name" />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">Campaign Name</TooltipTrigger>
+                    <TooltipContent><p>The name of the Amazon Advertising campaign.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <SortIndicator field="name" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('spend')}
               >
-                Spend <SortIndicator field="spend" />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">Spend</TooltipTrigger>
+                    <TooltipContent><p>Total amount spent on advertising for this campaign within the selected date range.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="spend" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('sales')}
               >
-                Sales <SortIndicator field="sales" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">Sales</TooltipTrigger>
+                    <TooltipContent><p>Total sales revenue generated from ads in this campaign within the selected date range.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <SortIndicator field="sales" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('acos')}
               >
-                ACOS <SortIndicator field="acos" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">ACOS</TooltipTrigger>
+                    <TooltipContent><p>Advertising Cost of Sale (Spend / Sales). Percentage of sales spent on advertising. Lower is generally better.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="acos" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('roas')}
               >
-                ROAS <SortIndicator field="roas" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">ROAS</TooltipTrigger>
+                    <TooltipContent><p>Return On Ad Spend (Sales / Spend). Revenue generated for every dollar spent on advertising. Higher is generally better.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="roas" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('impressions')}
               >
-                Impressions <SortIndicator field="impressions" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">Impressions</TooltipTrigger>
+                    <TooltipContent><p>The number of times ads from this campaign were displayed.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="impressions" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('clicks')}
               >
-                Clicks <SortIndicator field="clicks" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">Clicks</TooltipTrigger>
+                    <TooltipContent><p>The number of times ads from this campaign were clicked.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="clicks" />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/10"
+              <TableHead
+                className="cursor-pointer hover:bg-muted/10 text-foreground font-semibold"
                 onClick={() => handleSort('ctr')}
               >
-                CTR <SortIndicator field="ctr" />
+                 <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help">CTR</TooltipTrigger>
+                    <TooltipContent><p>Click-Through Rate (Clicks / Impressions). Percentage of impressions that resulted in a click.</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                 <SortIndicator field="ctr" />
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -287,8 +353,8 @@ export default function CampaignTable({ campaigns }: CampaignTableProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            Showing {startIndex + 1}-{Math.min(startIndex + rowsPerPage, campaigns.length)} of {campaigns.length} campaigns
+          <div className="text-sm text-foreground">
+            Showing <span className="font-medium">{startIndex + 1}-{Math.min(startIndex + rowsPerPage, campaigns.length)}</span> of <span className="font-medium">{campaigns.length}</span> campaigns
           </div>
           <Pagination>
             <PaginationContent>

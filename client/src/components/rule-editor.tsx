@@ -57,6 +57,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react"; // Assuming Info icon is used
 
 interface RuleEditorProps {
   onSubmit: (data: InsertRule) => void;
@@ -189,7 +196,8 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
       });
       
       // Parse and set the validation result
-      setValidationResult(response as ValidationResult);
+      // Assuming apiRequest returns an object like { data: ValidationResult }
+      setValidationResult(response.data as ValidationResult); 
       setIsDialogOpen(true);
     } catch (error) {
       console.error('Error validating rule:', error);
@@ -207,9 +215,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Rule Name</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                      Rule Name <Info className="h-3 w-3" />
+                    </FormLabel>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>A unique name to identify this rule in your list.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="e.g., Decrease Bid for High ACoS" />
               </FormControl>
             </FormItem>
           )}
@@ -224,9 +243,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
             
             return (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                        Description <Info className="h-3 w-3" />
+                      </FormLabel>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Optional: Add details about the rule's logic, goals, or expected outcomes for future reference.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
@@ -251,10 +281,22 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
               size="sm"
               onClick={() => appendGroup({
                 operator: "AND",
-                conditions: [{ metric: "acos", operator: "greater_than", value: 0 }]
+                conditions: [{ metric: "acos", operator: "greater_than", value: 0, timeframe: "last_30_days" }] // Added timeframe default
               })}
             >
-              <PlusCircle className="h-4 w-4 mr-2" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                     <span className="flex items-center">
+                       <PlusCircle className="h-4 w-4 mr-2" />
+                       Add Condition Group
+                     </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add another group of conditions. Use multiple groups for more complex logic.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               Add Condition Group
             </Button>
           </div>
@@ -283,7 +325,18 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
                   name={`conditions.${groupIndex}.operator`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Match Type</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                              Match Type <Info className="h-3 w-3" />
+                            </FormLabel>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Determines how conditions within this group are combined. 'AND' means all must be true. 'OR' means at least one must be true.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -311,7 +364,18 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           name="action"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Action</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                      Action <Info className="h-3 w-3" />
+                    </FormLabel>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Select the action to take when the rule's conditions are met.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -319,9 +383,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="increase_bid">Increase Bid</SelectItem>
-                  <SelectItem value="decrease_bid">Decrease Bid</SelectItem>
-                  <SelectItem value="pause_campaign">Pause Campaign</SelectItem>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild><SelectItem value="increase_bid">Increase Bid</SelectItem></TooltipTrigger>
+                      <TooltipContent><p>Increase the current bid by the specified adjustment value.</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild><SelectItem value="decrease_bid">Decrease Bid</SelectItem></TooltipTrigger>
+                      <TooltipContent><p>Decrease the current bid by the specified adjustment value.</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild><SelectItem value="pause_campaign">Pause Campaign</SelectItem></TooltipTrigger>
+                      <TooltipContent><p>Set the campaign status to paused.</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SelectContent>
               </Select>
             </FormItem>
@@ -334,9 +409,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>Rule Status</FormLabel>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                        Rule Status <Info className="h-3 w-3" />
+                      </FormLabel>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Toggle whether this rule is active and will be evaluated against campaigns.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <FormDescription>
-                  Enable or disable this rule
+                  Enable or disable this rule.
                 </FormDescription>
               </div>
               <FormControl>
@@ -355,9 +441,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           name="adjustment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adjustment (%)</FormLabel>
+               <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                      Adjustment (%) <Info className="h-3 w-3" />
+                    </FormLabel>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enter the percentage value for bid adjustments (e.g., 10 for 10%). Ignored if the action is 'Pause Campaign'.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <FormControl>
-                <Input 
+                <Input
                   type="number" 
                   step="0.1" 
                   {...field}
@@ -373,9 +470,20 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           name="priority"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Priority</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FormLabel className="inline-flex items-center gap-1 cursor-help">
+                      Priority <Info className="h-3 w-3" />
+                    </FormLabel>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Set the rule's priority (0-100). If multiple rules match a campaign, the one with the highest priority number takes precedence.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <FormControl>
-                <Input 
+                <Input
                   type="number" 
                   min="0"
                   max="100"
@@ -394,18 +502,29 @@ export default function RuleEditor({ onSubmit, defaultValues }: RuleEditorProps)
           <Button 
             type="button" 
             variant="outline" 
-            onClick={validateRule} 
+            onClick={validateRule}
             disabled={isValidating}
             className="w-full"
           >
-            {isValidating ? (
-              <>Validating...</>
-            ) : (
-              <>
-                <BarChart4 className="h-4 w-4 mr-2" />
-                Validate Rule
-              </>
-            )}
+             <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center justify-center">
+                      {isValidating ? (
+                        <>Validating...</>
+                      ) : (
+                        <>
+                          <BarChart4 className="h-4 w-4 mr-2" />
+                          Validate Rule
+                        </>
+                      )}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Simulate the rule's execution against your current campaign data to preview its potential impact and check for conflicts before saving.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
           </Button>
           <Button type="submit" className="w-full">Save Rule</Button>
         </div>

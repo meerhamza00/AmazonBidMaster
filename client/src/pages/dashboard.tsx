@@ -6,6 +6,10 @@ import KPICard from "@/components/kpi-card";
 import PerformanceChart from "@/components/performance-chart";
 import CampaignTable from "@/components/campaign-table";
 import CampaignForecast from "@/components/campaign-forecast";
+import { DashboardFilters } from '@/components/dashboard-filters';
+import { DashboardLayoutManager, WidgetConfig } from '@/components/dashboard-layout-manager';
+import { DashboardViewManager, DashboardView } from '@/components/dashboard-view-manager';
+import { v4 as uuidv4 } from 'uuid';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -29,6 +33,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tabs,
   TabsContent,
@@ -42,7 +47,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 type CampaignMetrics = {
@@ -55,13 +59,133 @@ type CampaignMetrics = {
   ctr: number;
 };
 
+// Default dashboard widgets configuration
+const defaultWidgets: WidgetConfig[] = [
+  {
+    id: 'spend-chart',
+    type: 'performance-chart',
+    title: 'Spend Overview',
+    visible: true,
+    props: { metric: 'spend' }
+  },
+  {
+    id: 'sales-chart',
+    type: 'performance-chart',
+    title: 'Sales Overview',
+    visible: true,
+    props: { metric: 'sales' }
+  },
+  {
+    id: 'acos-chart',
+    type: 'performance-chart',
+    title: 'ACOS Overview',
+    visible: true,
+    props: { metric: 'acos' }
+  },
+  {
+    id: 'roas-chart',
+    type: 'performance-chart',
+    title: 'ROAS Overview',
+    visible: true,
+    props: { metric: 'roas' }
+  },
+  {
+    id: 'impressions-chart',
+    type: 'performance-chart',
+    title: 'Impressions Overview',
+    visible: true,
+    props: { metric: 'impressions' }
+  },
+  {
+    id: 'clicks-chart',
+    type: 'performance-chart',
+    title: 'Clicks Overview',
+    visible: true,
+    props: { metric: 'clicks' }
+  },
+  {
+    id: 'ctr-chart',
+    type: 'performance-chart',
+    title: 'CTR Overview',
+    visible: false,
+    props: { metric: 'ctr' }
+  },
+  {
+    id: 'forecast-widget',
+    type: 'forecast',
+    title: 'Campaign Forecast',
+    visible: true,
+    props: { campaignId: 'campaign-1' }
+  }
+];
+
+// Default filters
+const defaultFilters = {
+  dateRange: '30d',
+  campaignType: 'all',
+  minSpend: 0,
+  maxSpend: 10000,
+  minAcos: 0,
+  maxAcos: 100,
+  minRoas: 0,
+  maxRoas: 20,
+  showPaused: true,
+};
+
 export default function Dashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [forecastCampaign, setForecastCampaign] = useState<Campaign | null>(null);
+  const [filters, setFilters] = useState(defaultFilters);
+  const [currentView, setCurrentView] = useState<DashboardView>({
+    id: 'default',
+    name: 'Default View',
+    layout: defaultWidgets,
+    filters: defaultFilters,
+    isDefault: true
+  });
   
-  const { data: campaigns = [], isLoading, refetch } = useQuery<Campaign[]>({
+  const { data: campaigns = [], isLoading: isLoadingCampaigns, refetch } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
+  });
+  
+  // Fetch performance data based on filters
+  const { data: performanceData = [], isLoading: isLoadingPerformance } = useQuery({
+    queryKey: ['performance-data', filters],
+    // This would be replaced with your actual API call
+    queryFn: async () => {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate mock data
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      const data = Array.from({ length: 30 }, (_, i) => {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Generate random data with some trends
+        const spend = 100 + Math.random() * 900;
+        const sales = spend * (0.8 + Math.random() * 1.2);
+        const impressions = 1000 + Math.random() * 9000;
+        const clicks = impressions * (0.01 + Math.random() * 0.09);
+        
+        return {
+          date: dateStr,
+          spend,
+          sales,
+          acos: (spend / sales) * 100,
+          roas: sales / spend,
+          impressions,
+          clicks,
+          ctr: (clicks / impressions) * 100
+        };
+      });
+      
+      return data;
+    }
   });
 
   // Handle refresh
@@ -71,6 +195,92 @@ export default function Dashboard() {
       title: "Refreshing data",
       description: "Dashboard data is being updated.",
     });
+  };
+  
+  // Handle filter changes
+  const handleFilterChange = (newFilters: Record<string, any>) => {
+    setFilters(newFilters);
+  };
+
+  // Handle view changes
+  const handleViewChange = (view: DashboardView) => {
+    setCurrentView(view);
+    setFilters(view.filters);
+    setActiveTab("overview"); // Reset to overview tab when changing views
+  };
+
+  // Save current view
+  const saveCurrentView = (name: string): DashboardView => {
+    const newView: DashboardView = {
+      id: uuidv4(),
+      name,
+      layout: currentView.layout,
+      filters
+    };
+    return newView;
+  };
+
+  // Handle layout changes
+  const handleLayoutChange = (layout: WidgetConfig[]) => {
+    setCurrentView(prev => ({
+      ...prev,
+      layout
+    }));
+  };
+  
+  // Render widget based on type
+  const renderWidget = (widget: WidgetConfig, index?: number) => {
+    if (isLoadingCampaigns || isLoadingPerformance) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-1/2" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[300px] w-full" />
+          </CardContent>
+        </Card>
+      );
+    }
+
+    switch (widget.type) {
+      case 'performance-chart':
+        return (
+          <PerformanceChart 
+            data={performanceData || []} 
+            metric={widget.props?.metric || 'spend'} 
+            title={widget.title} 
+          />
+        );
+      case 'forecast':
+        if (!forecastCampaign) {
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Forecast</CardTitle>
+                <CardDescription>Select a campaign to view forecast</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">No campaign selected</p>
+              </CardContent>
+            </Card>
+          );
+        }
+        return <CampaignForecast campaign={forecastCampaign} daysAhead={30} />;
+      default:
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>{widget.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Widget type not implemented
+              </div>
+            </CardContent>
+          </Card>
+        );
+    }
   };
   
   // Check if we're accessing via a hash link
@@ -108,7 +318,7 @@ export default function Dashboard() {
   const ctr = totalMetrics.impressions > 0 ? (totalMetrics.clicks / totalMetrics.impressions) * 100 : 0;
 
   // Generate chart data from the campaigns
-  const performanceData = campaigns.map(campaign => ({
+  const campaignPerformanceData = campaigns.map(campaign => ({
     date: campaign.name, // Using campaign name as date for now
     spend: (campaign.metrics as CampaignMetrics).spend,
     sales: (campaign.metrics as CampaignMetrics).sales,
@@ -136,7 +346,7 @@ export default function Dashboard() {
   };
 
   // Loading skeleton
-  if (isLoading) {
+  if (isLoadingCampaigns || isLoadingPerformance) {
     return (
       <div className="space-y-8 p-4 md:p-8">
         <div className="flex justify-between items-center mb-8">
@@ -171,7 +381,12 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold mb-1">Amazon PPC Dashboard</h1>
           <p className="text-muted-foreground">Optimize your campaign performance and increase ROI</p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <DashboardViewManager
+            currentView={currentView}
+            onViewChange={handleViewChange}
+            onSaveCurrentView={saveCurrentView}
+          />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -187,6 +402,11 @@ export default function Dashboard() {
           </TooltipProvider>
         </div>
       </div>
+      
+      <DashboardFilters 
+        filters={filters} 
+        onFilterChange={handleFilterChange} 
+      />
 
       {campaigns.length === 0 ? (
         <Card className="w-full max-w-3xl mx-auto">
@@ -205,10 +425,19 @@ export default function Dashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="custom">Custom Dashboard</TabsTrigger>
               <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="forecast" id="forecast-tab">Forecast</TabsTrigger>
               <TabsTrigger value="features">Advanced Features</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="custom" className="space-y-6">
+              <DashboardLayoutManager
+                defaultLayout={currentView.layout}
+                renderWidget={renderWidget}
+                onLayoutChange={handleLayoutChange}
+              />
+            </TabsContent>
             
             <TabsContent value="overview" className="space-y-6">
               {/* KPI Cards */}

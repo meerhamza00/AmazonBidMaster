@@ -25,7 +25,8 @@ import {
   Zap,
   Upload,
   Sparkles,
-  Award
+  Award,
+  Wrench // Added Wrench icon
 } from "lucide-react";
 
 export default function Documentation() {
@@ -39,11 +40,12 @@ export default function Documentation() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="usage">Usage Guide</TabsTrigger>
           <TabsTrigger value="prerequisites">Prerequisites</TabsTrigger>
+          <TabsTrigger value="troubleshooting">Troubleshooting</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
         </TabsList>
 
@@ -1196,6 +1198,60 @@ export default function Documentation() {
           </Card>
         </TabsContent>
 
+        {/* TROUBLESHOOTING TAB */}
+        <TabsContent value="troubleshooting" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Wrench className="h-6 w-6 text-orange-500 mr-2" />
+                Troubleshooting Common Issues
+              </CardTitle>
+              <CardDescription>
+                Solutions for common problems and errors you might encounter.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="ts-item-1">
+                  <AccordionTrigger>
+                    CSV data fails to import or shows errors
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground">
+                      If you're having trouble importing your CSV data, try these steps:
+                    </p>
+                    <ol className="list-decimal pl-5 mt-2 space-y-1 text-muted-foreground">
+                      <li>Ensure your CSV file strictly follows the provided template format. You can download the template from the CSV Upload section.</li>
+                      <li>Check for common errors: incorrect column headers, missing required columns (e.g., <code>campaign_name</code>, <code>spend</code>, <code>sales</code>, <code>impressions</code>, <code>clicks</code>, <code>date_range_start</code>, <code>date_range_end</code>), special characters or commas within numeric fields, incorrect date formats (use YYYY-MM-DD).</li>
+                      <li>Verify that numeric fields (spend, sales, etc.) do not contain currency symbols or percentage signs.</li>
+                      <li>Ensure the file is saved with UTF-8 encoding, especially if it contains non-ASCII characters.</li>
+                      <li>If errors persist, try importing a small subset of your data (e.g., a few rows) to isolate the problematic entries.</li>
+                    </ol>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="ts-item-2">
+                  <AccordionTrigger>
+                    Performance charts are not displaying data or look incorrect
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground">
+                      If your performance charts aren't showing data as expected:
+                    </p>
+                    <ol className="list-decimal pl-5 mt-2 space-y-1 text-muted-foreground">
+                      <li>Verify that campaign data has been successfully imported and processed. Check the Dashboard or Campaign Table for data presence.</li>
+                      <li>Ensure you have selected an appropriate date range in the filters that corresponds to the available data.</li>
+                      <li>Try refreshing the dashboard data using the "Refresh" button.</li>
+                      <li>Clear your browser cache and cookies, or try accessing the tool in an incognito/private browsing window to rule out browser extension conflicts.</li>
+                      <li>If using filters (e.g., Top 10, specific metric ranges), ensure the filters are not too restrictive, leading to no data matching the criteria. Try resetting to default filters.</li>
+                    </ol>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* FAQ TAB */}
         <TabsContent value="faq" className="space-y-6">
           <Card>
@@ -1365,6 +1421,39 @@ export default function Documentation() {
                     </ul>
                     <p className="mt-3 text-muted-foreground">
                       The tool does not require access to your Amazon seller account credentials, only to CSV exports or API credentials with specific permissions for advertising management.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-9">
+                  <AccordionTrigger>
+                    How long does it take to see results from bid optimizations?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground">
+                      The time to see results from bid optimizations can vary. Typically, you might start noticing changes in performance metrics like ACoS or ROAS within 7-14 days. Amazon's advertising platform has attribution delays (often up to 72 hours), and it takes time for bid changes to influence auction dynamics and gather enough new performance data. For significant strategic shifts, allow 2-4 weeks to assess the full impact. Consistent monitoring and incremental adjustments yield the best long-term results.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-10">
+                  <AccordionTrigger>
+                    Can I use this tool for multiple Amazon marketplaces (e.g., US, EU, JP)?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground">
+                      Currently, the tool is optimized for a single marketplace per instance. If you manage campaigns across multiple Amazon marketplaces (e.g., Amazon.com, Amazon.co.uk, Amazon.de), you would typically handle each marketplace's data separately. Future updates may include features for consolidated multi-marketplace views or easier switching between marketplace data sets. Please refer to the "Prerequisites" section for data preparation specific to your marketplace.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-11">
+                  <AccordionTrigger>
+                    What kind of support is available if I encounter issues?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground">
+                      We offer several support channels. You can consult this documentation, particularly the FAQ and Usage Guide sections. For technical issues or specific questions not covered here, you can typically reach out via a support email or a contact form provided on our website or within the application (if applicable). The integrated PPC Expert Chatbot can also assist with many common questions and troubleshooting steps related to PPC strategy and tool usage.
                     </p>
                   </AccordionContent>
                 </AccordionItem>

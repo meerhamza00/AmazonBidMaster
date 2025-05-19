@@ -10,6 +10,7 @@ import Documentation from "@/pages/documentation";
 import Support from "@/pages/support";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/terms-of-service";
+import FeedbackPage from "@/pages/feedback"; // Import the new feedback page
 import NotFound from "@/pages/not-found";
 import PpcExpertChatbot from "@/components/ppc-expert-chatbot";
 
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/support" component={Support} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
+      <Route path="/feedback" component={FeedbackPage} /> {/* Add route for feedback page */}
       <Route component={NotFound} />
     </Switch>
   );

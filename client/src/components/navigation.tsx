@@ -68,16 +68,16 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="border-b border-border bg-card sticky top-0 z-10 shadow-sm">
+    <nav className="border-b border-border bg-background sticky top-0 z-10 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center mr-4 cursor-pointer">
-                <BarChart3 className="h-6 w-6 text-orange-500 mr-2" />
-                <h1 className="text-xl font-bold hidden sm:inline-block">Amazon PPC Optimizer</h1>
-                <h1 className="text-xl font-bold sm:hidden">PPC Optimizer</h1>
+                <BarChart3 className="h-6 w-6 text-primary mr-2" />
+                <h1 className="text-xl font-bold hidden sm:inline-block text-foreground">Amazon PPC Optimizer</h1>
+                <h1 className="text-xl font-bold sm:hidden text-foreground">PPC Optimizer</h1>
               </div>
             </Link>
             

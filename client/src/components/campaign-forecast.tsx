@@ -3,6 +3,7 @@ import { type Campaign } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { 
   LineChart, 
   Line, 
@@ -16,9 +17,14 @@ import {
   AreaChart,
   ReferenceLine 
 } from 'recharts';
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { type CampaignForecast as ForecastData, type ForecastPoint } from "@shared/ml/forecasting";
-import { BarChart2, TrendingUp, BadgeDollarSign, PercentIcon } from "lucide-react";
+import { BarChart2, TrendingUp, BadgeDollarSign, PercentIcon, Download, FileText } from "lucide-react";
+import { ZoomableChart } from "@/components/ui/zoomable-chart";
+import { EnhancedTooltip } from "@/components/ui/enhanced-tooltip";
+import { ChartExportMenu } from "@/components/ui/chart-export-menu";
+import { toPng } from 'html-to-image';
+import { saveAs } from 'file-saver';
 
 interface CampaignForecastProps {
   campaign: Campaign;
@@ -65,6 +71,7 @@ const CustomTooltip = ({ active, payload, label, metricFormat }: any) => {
 
 export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignForecastProps) {
   const [selectedMetric, setSelectedMetric] = useState<string>("spend");
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Define metrics with icons and formatting
   const metrics: Record<string, ForecastMetric> = {
@@ -152,6 +159,40 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
     yMin = Math.min(...values) * 0.9;
     yMax = Math.max(...values) * 1.1;
   }
+  
+  // Export functions
+  const exportToPng = () => {
+    if (chartRef.current) {
+      toPng(chartRef.current)
+        .then((dataUrl) => {
+          saveAs(dataUrl, `forecast-${campaign.id}-${selectedMetric}-${new Date().toISOString().split('T')[0]}.png`);
+        })
+        .catch((error) => {
+          console.error('Error exporting chart:', error);
+        });
+    }
+  };
+
+  const exportToCsv = () => {
+    if (!forecast) return;
+    
+    // Convert data to CSV format
+    const headers = ['date', 'actual', 'forecast', 'lowerBound', 'upperBound'];
+    const csvContent = [
+      headers.join(','),
+      ...mergedChartData.map(row => [
+        row.date,
+        row[selectedMetric],
+        row.forecast,
+        row.lowerBound,
+        row.upperBound
+      ].join(','))
+    ].join('\n');
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `forecast-${campaign.id}-${selectedMetric}-${new Date().toISOString().split('T')[0]}.csv`);
+  };
 
   // Find the current date to use as a reference line
   const currentDate = new Date().toISOString().split('T')[0];
@@ -196,9 +237,9 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
           <Tabs defaultValue="spend" className="space-y-6" onValueChange={setSelectedMetric}>
             <TabsList className="grid grid-cols-4">
               {Object.values(metrics).map(({ key, label, icon }) => (
-                <TabsTrigger key={key} value={key} className="flex items-center gap-2">
-                  {icon}
-                  {label}
+                <TabsTrigger key={key} value={key} className="flex items-center gap-2 text-wrap">
+                  <span className="flex-shrink-0">{icon}</span>
+                  <span className="truncate">{label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -209,26 +250,26 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
                 <div className="grid grid-cols-3 gap-4">
                   {/* Lower bound */}
                   <div className="bg-muted/20 p-4 rounded-lg border border-border">
-                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1 whitespace-nowrap">
                       Lower Bound
                     </h4>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold truncate">
                       {forecast && format((forecast.confidenceInterval.lower[forecast.confidenceInterval.lower.length - 1] as ExtendedForecastPoint)[key])}
                     </p>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground block text-wrap break-words">
                       Conservative estimate (95% confidence)
                     </span>
                   </div>
                   
                   {/* Expected forecast */}
                   <div className="bg-[#ff6b00]/10 p-4 rounded-lg border border-[#ff6b00]/20">
-                    <h4 className="text-sm font-medium text-[#ff6b00] flex items-center gap-1">
+                    <h4 className="text-sm font-medium text-[#ff6b00] flex items-center gap-1 whitespace-nowrap">
                       {metrics[key].icon} Expected
                     </h4>
-                    <p className="text-2xl font-bold text-foreground">
+                    <p className="text-2xl font-bold text-foreground truncate">
                       {forecast && format((forecast.forecasts[forecast.forecasts.length - 1] as ExtendedForecastPoint)[key])}
                     </p>
-                    <span className="text-xs flex items-center gap-1">
+                    <span className="text-xs block text-wrap break-words">
                       <span className="text-muted-foreground">
                         Forecasted {label.toLowerCase()}
                       </span>
@@ -237,73 +278,58 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
                   
                   {/* Upper bound */}
                   <div className="bg-muted/20 p-4 rounded-lg border border-border">
-                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1 whitespace-nowrap">
                       Upper Bound
                     </h4>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold truncate">
                       {forecast && format((forecast.confidenceInterval.upper[forecast.confidenceInterval.upper.length - 1] as ExtendedForecastPoint)[key])}
                     </p>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground block text-wrap break-words">
                       Optimistic estimate (95% confidence)
                     </span>
                   </div>
                 </div>
                 
-                {/* Chart */}
-                <div className="h-[300px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart 
+                {/* Chart with export buttons */}
+                <div className="relative">
+                  <div className="absolute top-0 right-0 z-10 flex gap-2">
+                    <ChartExportMenu
+                      chartRef={chartRef}
                       data={mergedChartData}
-                      margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
+                      filename={`forecast-${campaign.id}-${key}`}
+                      exportColumns={[
+                        { key: 'date', label: 'Date' },
+                        { key: key, label: label },
+                        { key: 'upperBound', label: 'Upper Bound' },
+                        { key: 'lowerBound', label: 'Lower Bound' }
+                      ]}
+                    />
+                  </div>
+                  
+                  <div ref={chartRef} className="mt-4">
+                    <ZoomableChart
+                      data={mergedChartData}
+                      areaKey={key}
+                      xAxisKey="date"
+                      areaColor={color}
+                      formatYAxis={(value) => {
+                        const formatted = format(value);
+                        return key === 'spend' || key === 'sales' 
+                          ? formatted.replace('$', '') 
+                          : formatted;
+                      }}
+                      formatTooltip={format}
+                      tooltipContent={<CustomTooltip metricFormat={format} />}
                     >
-                      <defs>
-                        <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#ff6b00" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.15} />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fontSize: 11 }} 
-                        tickMargin={10}
-                        tickFormatter={(value) => {
-                          // Format date to be more readable
-                          const date = new Date(value);
-                          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                        }}
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 11 }} 
-                        tickFormatter={(value) => {
-                          // Format Y-axis values based on the selected metric
-                          const formatted = format(value);
-                          // For currency, remove the dollar sign for cleaner appearance
-                          return key === 'spend' || key === 'sales' 
-                            ? formatted.replace('$', '') 
-                            : formatted;
-                        }}
-                        domain={[yMin, yMax]}
-                      />
-                      <Tooltip 
-                        content={<CustomTooltip metricFormat={format} />} 
-                      />
-                      <Legend 
-                        verticalAlign="top" 
-                        height={36}
-                        iconType="circle"
-                        iconSize={8}
-                      />
-                      
-                      {/* Confidence interval area */}
-                      <Area 
-                        type="monotone" 
-                        dataKey="upperBound" 
-                        stroke="none"
-                        fill="#ff6b00" 
+                      {/* Confidence interval areas */}
+                      <Area
+                        type="monotone"
+                        dataKey="upperBound"
+                        stroke="transparent"
+                        fill={color}
                         fillOpacity={0.1}
-                        name="Confidence Interval"
                         activeDot={false}
+                        name="Upper Bound"
                       />
                       <Area 
                         type="monotone" 
@@ -353,8 +379,8 @@ export default function CampaignForecast({ campaign, daysAhead = 30 }: CampaignF
                           fontSize: 10
                         }} 
                       />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                    </ZoomableChart>
+                  </div>
                 </div>
 
                 {/* Accuracy metrics */}
