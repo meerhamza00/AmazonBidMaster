@@ -11,5 +11,6 @@ router.post('/messages/:id', chatController.sendMessage);
 router.post('/messages', chatController.sendMessage); // Keep for backward compatibility
 router.delete('/conversations/:id', chatController.deleteConversation);
 router.get('/models', chatController.getModels);
+router.post('/conversations/:id/rename', chatController.renameConversation);
 
 export default router;

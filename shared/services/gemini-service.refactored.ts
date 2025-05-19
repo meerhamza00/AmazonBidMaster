@@ -17,12 +17,18 @@ export class GeminiService implements AIServiceInterface {
    */
   async generateResponse(messages: ChatMessage[]): Promise<string> {
     try {
+      console.log('[DEBUG][GeminiService.refactored] generateResponse called with messages:', messages);
       const geminiModel = this.client.getGenerativeModel({ model: this.model });
       const chat = geminiModel.startChat();
       
       // Process each message in the conversation
       for (const msg of messages) {
         if (msg.role === 'user') {
+          console.log('[DEBUG][GeminiService.refactored] Sending user message to Gemini:', msg.content);
+          await chat.sendMessage(msg.content);
+        }
+        if (msg.role === 'system') {
+          console.log('[DEBUG][GeminiService.refactored] Sending system prompt to Gemini:', msg.content);
           await chat.sendMessage(msg.content);
         }
       }
@@ -33,7 +39,9 @@ export class GeminiService implements AIServiceInterface {
         return 'No user message found';
       }
       
+      console.log('[DEBUG][GeminiService.refactored] Getting response for last user message:', lastUserMessage.content);
       const result = await chat.sendMessage(lastUserMessage.content);
+      console.log('[DEBUG][GeminiService.refactored] Gemini LLM response:', result.response.text());
       return result.response.text();
     } catch (error) {
       console.error('Google Gemini API error:', error);

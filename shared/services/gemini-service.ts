@@ -25,19 +25,19 @@ export class GeminiService implements AiService {
     // Extract system message(s) if present
     const systemMessages = messages.filter(msg => msg.role === 'system');
     const conversationMessages = messages.filter(msg => msg.role !== 'system');
-    
+    console.log('[DEBUG][GeminiService] systemMessages:', systemMessages);
+    console.log('[DEBUG][GeminiService] conversationMessages:', conversationMessages);
     // Create initial prompt that includes system message
     let initialPrompt = '';
     if (systemMessages.length > 0) {
       initialPrompt = `System Instructions: ${systemMessages.map(msg => msg.content).join('\n\n')}\n\n`;
     }
-
+    console.log('[DEBUG][GeminiService] initialPrompt:', initialPrompt);
     // Initialize the chat with the latest model name
     // Note: Model names may have changed, using gemini-1.5-pro as default, with fallback to gemini-1.0-pro
     let modelName = 'gemini-1.5-pro';
     let model;
     let chat;
-    
     try {
       // First try with the latest model name
       try {
@@ -50,7 +50,7 @@ export class GeminiService implements AiService {
         });
       } catch (modelError) {
         // If the first model fails, try the fallback model
-        console.log(`Model ${modelName} not found, trying fallback model...`);
+        console.log(`[DEBUG][GeminiService] Model ${modelName} not found, trying fallback model...`);
         modelName = 'gemini-1.0-pro';
         model = this.client.getGenerativeModel({ model: modelName });
         chat = model.startChat({
@@ -60,22 +60,21 @@ export class GeminiService implements AiService {
           },
         });
       }
-      
       // Add system message as first user message if it exists
       if (initialPrompt) {
+        console.log('[DEBUG][GeminiService] Sending initialPrompt to Gemini:', initialPrompt);
         await chat.sendMessage(initialPrompt);
       }
-      
       // Send all messages to the chat in order
       let lastResponse = '';
       for (const msg of conversationMessages) {
         // Skip assistant messages as they are already part of the history
         if (msg.role === 'assistant') continue;
-        
+        console.log('[DEBUG][GeminiService] Sending user message to Gemini:', msg.content);
         const result = await chat.sendMessage(msg.content);
         lastResponse = result.response.text();
+        console.log('[DEBUG][GeminiService] Gemini LLM response:', lastResponse);
       }
-      
       return lastResponse;
     } catch (error: any) {
       console.error('Error calling Google Generative AI:', error);

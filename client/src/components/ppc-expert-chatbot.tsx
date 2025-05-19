@@ -2,73 +2,65 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-// Import types from shared module
-import type { 
-  AiProvider, 
-  ChatMessage, 
-  ChatConversation 
-} from '@shared/chatbot';
-import { 
-  MessageCircle, 
-  Send, 
-  RotateCw, 
-  Bot,
-  User,
-  X
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Send, User, Bot, MessageCircle, Settings, X, MoreVertical, Edit } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
+import type { AiProvider, ChatConversation, ChatMessage } from '../../../shared/chatbot';
 
 // Type for AI model info from the API
 interface AiModel {
-  id: AiProvider;
+  id: string;
   name: string;
+  provider: AiProvider;
   configured: boolean;
   description: string;
   type: 'reasoning' | 'chat-based';
+  recommended?: boolean;
 }
 
 // Type for conversation list item
 interface ConversationListItem {
   id: string;
   title: string;
-  preview: string;
+  lastMessage: string;
   createdAt: number;
   updatedAt: number;
 }
 
 export default function PpcExpertChatbot() {
-  const [message, setMessage] = useState('');
-  const [provider, setProvider] = useState<AiProvider>('gemini');
+  const [message, setMessage] = useState("");
+  // Always use gemini as default provider and gemini-1.5-flash as default model
+  const GEMINI_DEFAULT_MODEL = 'gemini-1.5-flash';
+  const [selectedProvider, setSelectedProvider] = useState<AiProvider>('gemini');
+  const [selectedModel, setSelectedModel] = useState<string>(GEMINI_DEFAULT_MODEL);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showModelSelector, setShowModelSelector] = useState(false);
+  // State for rename dialog
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [renameConversationId, setRenameConversationId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  // Add state for system prompt customization
+  const [systemPrompt, setSystemPrompt] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Fetch available AI models
   const { data: models = [] } = useQuery({
-    queryKey: ['/api/chat/models'],
+    queryKey: ["/api/chat/models"],
     queryFn: async () => {
-      const response = await apiRequest<Omit<AiModel, 'type'>[]>('/api/chat/models');
-      return response.data.map(model => ({
-        ...model,
-        type: 'chat-based' as const
-      }));
-    }
+      const response = await apiRequest<AiModel[]>("/api/chat/models");
+      return response.data;
+    },
   });
 
   // Fetch conversation list
@@ -86,25 +78,45 @@ export default function PpcExpertChatbot() {
     queryFn: async () => {
       if (!activeConversationId) return null;
       const response = await apiRequest<ChatConversation>(`/api/chat/conversations/${activeConversationId}`);
+      console.log('[DEBUG] Active conversation API response:', response.data);
       return response.data;
     },
     enabled: !!activeConversationId
   });
 
+  // Debug log for rendering
+  useEffect(() => {
+    console.log('[DEBUG] Render activeConversation:', activeConversation);
+  }, [activeConversation]);
+
   // Create a new conversation
   const createConversation = useMutation({
     mutationFn: async (message: string) => {
+      console.log('[DEBUG] Creating conversation with:', {
+        message,
+        model: selectedModel,
+        provider: selectedProvider,
+        systemPrompt
+      });
       const response = await apiRequest('/api/chat/conversations', {
         method: 'POST',
-        data: { message, provider }
+        data: { 
+          message, 
+          model: selectedModel,
+          provider: selectedProvider,
+          systemPrompt: systemPrompt || undefined
+        }
       });
+      console.log('[DEBUG] createConversation API response:', response.data);
       return response.data;
     },
     onSuccess: (data) => {
+      console.log('[DEBUG] createConversation onSuccess:', data);
       setActiveConversationId(data.id);
       refetchConversations();
     },
     onError: (error: any) => {
+      console.error('[DEBUG] Error creating conversation:', error);
       toast({
         title: 'Error creating conversation',
         description: error.message,
@@ -117,56 +129,81 @@ export default function PpcExpertChatbot() {
   const sendMessageToConversation = useMutation({
     mutationFn: async ({ message, conversationId }: { message: string; conversationId?: string }) => {
       try {
-        // Use the endpoint with conversation ID in the URL path
         const endpoint = conversationId 
           ? `/api/chat/messages/${conversationId}`
           : '/api/chat/messages';
-          
+        console.log('[DEBUG] Sending message to conversation:', {
+          message,
+          conversationId,
+          endpoint,
+          model: selectedModel,
+          provider: selectedProvider,
+          systemPrompt
+        });
         const response = await apiRequest(endpoint, {
           method: 'POST',
           data: {
             message,
-            provider
+            model: selectedModel,
+            provider: selectedProvider,
+            systemPrompt: systemPrompt || undefined
           }
         });
+        console.log('[DEBUG] sendMessageToConversation API response:', response.data);
         return response.data;
       } catch (error: any) {
-        // Check if this is a quota error (OpenAI)
-        if (error?.message?.includes('quota') && provider === 'openai') {
-          // Try with a different provider automatically
-          const backupProvider = 'anthropic';
-          toast({
-            title: 'OpenAI quota exceeded',
-            description: `Trying with ${backupProvider} instead...`,
-          });
+        console.error('[DEBUG] Error sending message to conversation:', error);
+        // Check if this is a quota error or API key issue
+        if (error?.message?.includes('quota') || error?.message?.includes('API key')) {
+          // Get available providers that are configured
+          const configuredProviders = getUniqueProviders()
+            .filter(p => models.some(m => m.provider === p && m.configured));
           
-          // Switch to the backup provider
-          setProvider(backupProvider as AiProvider);
-          
-          // Use the endpoint with conversation ID in the URL path
-          const endpoint = conversationId 
-            ? `/api/chat/messages/${conversationId}`
-            : '/api/chat/messages';
+          // If we have other configured providers, try with a different one
+          if (configuredProviders.length > 1) {
+            // Find a different provider
+            const backupProvider = configuredProviders.find(p => p !== selectedProvider) || 'gemini';
             
-          // Retry with the new provider
-          const retryResponse = await apiRequest(endpoint, {
-            method: 'POST',
-            data: {
-              message,
-              provider: backupProvider
-            }
-          });
-          return retryResponse.data;
+            // Get a recommended model for the backup provider
+            const backupModel = getRecommendedModel(backupProvider as AiProvider) || '';
+            
+            toast({
+              title: `${selectedProvider.toUpperCase()} service unavailable`,
+              description: `Trying with ${backupProvider} instead...`,
+            });
+            
+            // Switch to the backup provider and model
+            setSelectedProvider(backupProvider as AiProvider);
+            setSelectedModel(backupModel);
+            
+            // Use the endpoint with conversation ID in the URL path
+            const endpoint = conversationId 
+              ? `/api/chat/messages/${conversationId}`
+              : '/api/chat/messages';
+              
+            // Retry with the new provider and model
+            const retryResponse = await apiRequest(endpoint, {
+              method: 'POST',
+              data: {
+                message,
+                model: backupModel,
+                provider: backupProvider
+              }
+            });
+            return retryResponse.data;
+          }
         }
         
         throw error;
       }
     },
     onSuccess: () => {
+      console.log('[DEBUG] sendMessageToConversation onSuccess');
       refetchActiveConversation();
       refetchConversations();
     },
     onError: (error: any) => {
+      console.error('[DEBUG] Error in sendMessageToConversation onError:', error);
       toast({
         title: 'Error sending message',
         description: error.message || 'Something went wrong. Try a different AI provider.',
@@ -211,14 +248,7 @@ export default function PpcExpertChatbot() {
   // Handle sending a message
   const handleSendMessage = async () => {
     if (!message.trim()) return;
-    
-    // Add a temporary user message to the UI
-    const tempUserMessage: ChatMessage = {
-      id: 'temp-' + Date.now(),
-      role: 'user',
-      content: message,
-      timestamp: Date.now()
-    };
+    console.log('[DEBUG] handleSendMessage called:', message);
     
     // Store the message before sending to clear the input faster
     const messageToSend = message;
@@ -232,13 +262,15 @@ export default function PpcExpertChatbot() {
     try {
       if (activeConversationId) {
         // Send to existing conversation
-        await sendMessageToConversation.mutateAsync({ 
+        const result = await sendMessageToConversation.mutateAsync({ 
           message: messageToSend, 
           conversationId: activeConversationId 
         });
+        console.log('[DEBUG] sendMessageToConversation result:', result);
       } else {
         // Create a new conversation
-        await createConversation.mutateAsync(messageToSend);
+        const result = await createConversation.mutateAsync(messageToSend);
+        console.log('[DEBUG] createConversation result:', result);
       }
       
       // Force scroll to bottom after message is sent
@@ -253,7 +285,7 @@ export default function PpcExpertChatbot() {
         }
       }, 200);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[DEBUG] Error in handleSendMessage:', error);
     } finally {
       setIsTyping(false);
     }
@@ -289,21 +321,52 @@ export default function PpcExpertChatbot() {
     return date.toLocaleDateString();
   };
 
-  // Change provider and reset conversation
-  const handleProviderChange = (newProvider: string) => {
-    setProvider(newProvider as AiProvider);
-    // Optionally reset conversation when changing models
-    // setActiveConversationId(null);
+  // Get unique list of providers
+  const getUniqueProviders = () => {
+    const providers = models.map(model => model.provider);
+    return [...new Set(providers)];
   };
-
-  // Get available providers (with proper status)
-  const availableProviders = models.map((model: AiModel) => ({
-    id: model.id,
-    name: model.name,
-    configured: model.configured,
-    description: model.description,
-    type: model.type
-  }));
+  
+  // Get models for the selected provider
+  const getModelsForProvider = (provider: AiProvider) => {
+    return models.filter(model => model.provider === provider);
+  };
+  
+  // Get a recommended model for a provider
+  const getRecommendedModel = (provider: AiProvider) => {
+    const providerModels = getModelsForProvider(provider);
+    const recommended = providerModels.find(model => model.recommended);
+    return recommended?.id || (providerModels.length > 0 ? providerModels[0].id : null);
+  };
+  
+  // Handle provider change
+  const handleProviderChange = (newProvider: AiProvider) => {
+    if (newProvider !== 'gemini') {
+      // Only allow gemini
+      setSelectedProvider('gemini');
+      // Find recommended Gemini model
+      const geminiModels = models.filter(m => m.provider === 'gemini');
+      const recommendedGemini = geminiModels.find(m => m.recommended) || geminiModels[0];
+      setSelectedModel(recommendedGemini ? recommendedGemini.id : GEMINI_DEFAULT_MODEL);
+      return;
+    }
+    setSelectedProvider('gemini');
+    const geminiModels = models.filter(m => m.provider === 'gemini');
+    const recommendedGemini = geminiModels.find(m => m.recommended) || geminiModels[0];
+    setSelectedModel(recommendedGemini ? recommendedGemini.id : GEMINI_DEFAULT_MODEL);
+  };
+  
+  // In handleModelChange, only allow gemini models
+  const handleModelChange = (newModel: string) => {
+    const geminiModels = models.filter(m => m.provider === 'gemini');
+    if (geminiModels.some(m => m.id === newModel)) {
+      setSelectedModel(newModel);
+    } else {
+      // fallback to recommended
+      const recommendedGemini = geminiModels.find(m => m.recommended) || geminiModels[0];
+      setSelectedModel(recommendedGemini ? recommendedGemini.id : GEMINI_DEFAULT_MODEL);
+    }
+  };
 
   // Render message content with line breaks
   const renderMessageContent = (content: string) => {
@@ -315,241 +378,264 @@ export default function PpcExpertChatbot() {
     ));
   };
 
+  // Rename Conversation Dialog
+  const renderRenameDialog = () => (
+    <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+      <DialogContent>
+        <DialogTitle>Rename Conversation</DialogTitle>
+        <Input
+          value={renameValue}
+          onChange={e => setRenameValue(e.target.value)}
+          placeholder="Conversation name"
+          autoFocus
+        />
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={async () => {
+              if (renameConversationId && renameValue.trim()) {
+                await renameConversation(renameConversationId, renameValue.trim());
+                setRenameDialogOpen(false);
+              }
+            }}
+            disabled={!renameValue.trim()}
+          >
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Add renameConversation function
+  async function renameConversation(id: string, newTitle: string) {
+    await apiRequest(`/api/chat/conversations/${id}/rename`, {
+      method: 'POST',
+      data: { title: newTitle }
+    });
+    refetchConversations();
+  }
+
+  // When models are loaded, always enforce gemini/gemini-1.5-flash as default if available
+  useEffect(() => {
+    console.log('[DEBUG] models loaded:', models);
+    if (models.length > 0) {
+      // Find recommended Gemini model
+      const geminiModels = models.filter(m => m.provider === 'gemini');
+      const recommendedGemini = geminiModels.find(m => m.recommended) || geminiModels[0];
+      console.log('[DEBUG] geminiModels:', geminiModels);
+      console.log('[DEBUG] recommendedGemini:', recommendedGemini);
+      if (recommendedGemini) {
+        if (selectedProvider !== 'gemini' || selectedModel !== recommendedGemini.id) {
+          console.log('[DEBUG] Forcing provider/model to gemini:', recommendedGemini.id);
+          setSelectedProvider('gemini');
+          setSelectedModel(recommendedGemini.id);
+        }
+      }
+    }
+    // eslint-disable-next-line
+  }, [models]);
+
   return (
     <div className={`fixed bottom-6 right-6 flex flex-col transition-all duration-300 z-50 
       ${isExpanded ? 'w-[40rem] h-[38rem]' : 'w-16 h-16'}`}>
-      
       {/* Collapsed chat button */}
       {!isExpanded && (
         <Button 
           onClick={() => setIsExpanded(true)}
-          className="w-16 h-16 rounded-full p-0 shadow-lg"
+          className="w-16 h-16 rounded-full p-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-800 text-white hover:scale-105 border border-orange-200 dark:border-orange-900"
         >
-          <MessageCircle size={24} />
+          <MessageCircle size={28} />
         </Button>
       )}
-      
       {/* Expanded chat interface */}
       {isExpanded && (
-        <Card className="w-full h-full flex flex-col overflow-hidden shadow-xl border-2 border-orange-500">
+        <Card className="w-full h-full flex flex-col overflow-hidden shadow-xl border border-orange-200 dark:border-orange-900 bg-white dark:bg-zinc-900">
           {/* Header */}
-          <div className="p-4 flex items-center justify-between border-b bg-orange-500 text-white">
-            <div className="flex items-center gap-2">
-              <Bot size={20} />
-              <h2 className="font-semibold">Amazon PPC Expert</h2>
+          <div className="p-3 flex items-center justify-between border-b bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-900 text-white">
+            <div className="flex items-center gap-2 font-semibold text-lg">
+              <MessageCircle size={22} />
+              Amazon Bid Master Chat
             </div>
+            {/* In the chat header (top right), show both Settings and Close Chat buttons */}
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
-                className="text-white hover:bg-orange-600"
-                onClick={() => setIsExpanded(false)}
+                className="text-white hover:bg-orange-400 dark:hover:bg-orange-700"
+                onClick={() => setShowModelSelector(true)}
+                title="AI Model Settings"
               >
-                <X size={18} />
+                <Settings size={18} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-orange-400 dark:hover:bg-orange-700"
+                onClick={() => setIsExpanded(false)}
+                title="Close Chat"
+              >
+                <X size={20} />
               </Button>
             </div>
           </div>
-          
           {/* Main chat area with sidebar */}
-          <div className="flex flex-1 overflow-hidden">
-            {/* Conversation list sidebar */}
-            <div className="w-1/3 border-r border-border bg-muted/20 hidden md:block">
-              <div className="p-3 border-b">
-                <h3 className="font-medium text-sm mb-2">Model</h3>
-                <Select 
-                  value={provider} 
-                  onValueChange={handleProviderChange}
+          <div className="flex flex-1 overflow-hidden bg-orange-50 dark:bg-zinc-950">
+            {/* Sidebar: Conversation List */}
+            <div className="w-56 border-r bg-white dark:bg-zinc-900 dark:border-zinc-800 flex flex-col">
+              <div className="flex items-center justify-between px-3 py-2 border-b text-sm font-semibold text-orange-600 dark:text-orange-400 dark:border-zinc-800">
+                Conversations
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900"
+                  onClick={() => {
+                    setActiveConversationId(null);
+                  }}
+                  title="New Conversation"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select AI model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableProviders.map((model: AiModel) => (
-                      <SelectItem 
-                        key={model.id} 
-                        value={model.id}
-                        disabled={!model.configured}
-                      >
-                        {model.name}
-                        {!model.configured && " (API Key Required)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Plus size={18} />
+                </Button>
               </div>
-              
-              <div className="p-3">
-                <h3 className="font-medium text-sm mb-2">Conversations</h3>
-                {conversations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground px-1">No conversations yet</p>
-                ) : (
-                  <ScrollArea className="h-[calc(100vh-15rem)]">
-                    <div className="space-y-1">
-                      {conversations.map((conv: ConversationListItem) => (
-                        <div 
-                          key={conv.id}
-                          className={`p-2 rounded-md cursor-pointer hover:bg-muted flex justify-between items-start text-sm group
-                            ${activeConversationId === conv.id ? 'bg-muted' : ''}`}
-                          onClick={() => setActiveConversationId(conv.id)}
-                        >
-                          <div className="flex-1 mr-1 overflow-hidden">
-                            <div className="font-medium truncate">{conv.title}</div>
-                            <div className="text-xs text-muted-foreground truncate">{conv.preview}</div>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(conv.updatedAt)}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteConversation.mutate(conv.id);
-                              }}
-                            >
-                              <X size={12} />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+              <div className="flex-1 overflow-y-auto">
+                {conversations.length === 0 && (
+                  <div className="text-xs text-gray-400 dark:text-zinc-500 p-4 text-center">No conversations yet.</div>
                 )}
+                {conversations.map(conv => (
+                  <div
+                    key={conv.id}
+                    className={`relative px-3 py-2 cursor-pointer border-b hover:bg-orange-100 dark:hover:bg-orange-900 transition-all ${activeConversationId === conv.id ? 'bg-orange-100 dark:bg-orange-900 font-bold' : 'dark:border-zinc-800'}`}
+                    onClick={() => setActiveConversationId(conv.id)}
+                  >
+                    <div className="truncate text-sm dark:text-zinc-100">{conv.title || 'Untitled'}</div>
+                    <div className="text-xs text-gray-500 dark:text-zinc-400 truncate">{conv.lastMessage}</div>
+                    <div className="text-[10px] text-gray-400 dark:text-zinc-500 text-right">{formatDate(conv.updatedAt)}</div>
+                    <div className="absolute right-2 top-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-gray-400 dark:text-zinc-500 hover:text-orange-500 dark:hover:text-orange-400 p-1" onClick={e => e.stopPropagation()}>
+                            <MoreVertical size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+                          <DropdownMenuItem onSelect={e => { e.preventDefault(); setRenameConversationId(conv.id); setRenameValue(conv.title); setRenameDialogOpen(true); }} className="hover:bg-orange-50 dark:hover:bg-orange-900">
+                            <Edit size={14} className="mr-2" /> Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={e => { e.preventDefault(); deleteConversation.mutate(conv.id); }} className="hover:bg-red-50 dark:hover:bg-red-900 text-red-600 dark:text-red-400">
+                            <Trash2 size={14} className="mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            
-            {/* Chat messages */}
+            {/* Main Chat Window */}
             <div className="flex-1 flex flex-col">
-              <ScrollArea className="flex-1 p-4" type="always">
-                {!activeConversation ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                    <Bot size={40} className="text-orange-500 mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Amazon PPC Expert Assistant</h3>
-                    <p className="text-muted-foreground mb-4 max-w-md">
-                      Ask me any question about Amazon PPC advertising, campaign optimization,
-                      bid strategies, or performance analysis.
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-2 w-full max-w-md mt-4">
-                      <div 
-                        className="p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
-                        onClick={() => setMessage("How do I improve my ACoS on Amazon PPC?")}
-                      >
-                        <p className="text-sm font-medium">How do I improve my ACoS?</p>
+              {/* Messages */}
+              {activeConversation ? (
+                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scroll-area-viewport">
+                  {activeConversation.messages && activeConversation.messages.length > 0 ? (
+                    activeConversation.messages.map((msg: ChatMessage, idx: number) => (
+                      <div key={msg.id || idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[70%] px-4 py-2 rounded-lg shadow-sm whitespace-pre-line text-sm ${msg.role === 'user' ? 'bg-orange-200 dark:bg-orange-800 text-right dark:text-orange-100' : 'bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-left dark:text-zinc-100'}`}>
+                          <div className="mb-1 text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                            {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                            {msg.role === 'user' ? 'You' : 'AI'} · {formatTime(msg.timestamp)}
+                          </div>
+                          <div>{renderMessageContent(msg.content)}</div>
+                        </div>
                       </div>
-                      <div 
-                        className="p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
-                        onClick={() => setMessage("What's a good bidding strategy for new campaigns?")}
-                      >
-                        <p className="text-sm font-medium">Bidding strategy for new campaigns</p>
-                      </div>
-                      <div 
-                        className="p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
-                        onClick={() => setMessage("How should I structure my campaign hierarchy?")}
-                      >
-                        <p className="text-sm font-medium">Campaign structure advice</p>
-                      </div>
-                      <div 
-                        className="p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
-                        onClick={() => setMessage("How to analyze and optimize search term reports?")}
-                      >
-                        <p className="text-sm font-medium">Search term optimization</p>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-400 dark:text-zinc-500 mt-10">Start a conversation to get Amazon PPC advice!</div>
+                  )}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[70%] px-4 py-2 rounded-lg bg-white dark:bg-zinc-800 border dark:border-zinc-700 shadow-sm text-sm animate-pulse">
+                        <div className="mb-1 text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                          <Bot size={14} /> AI is typing...
+                        </div>
+                        <div className="italic text-gray-400 dark:text-zinc-500">Thinking...</div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {activeConversation.messages
-                      .filter(msg => msg.role !== 'system') // Don't show system messages
-                      .map((msg: ChatMessage) => (
-                        <div 
-                          key={msg.id} 
-                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`flex gap-3 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <Avatar className={`h-8 w-8 ${msg.role === 'user' ? 'bg-orange-500' : 'bg-primary'}`}>
-                              {msg.role === 'user' ? (
-                                <User className="h-5 w-5" />
-                              ) : (
-                                <Bot className="h-5 w-5" />
-                              )}
-                            </Avatar>
-                            <div>
-                              <div className={`rounded-lg px-4 py-3 text-sm ${
-                                msg.role === 'user' ? 'bg-orange-500 text-white' : 'bg-muted'
-                              }`}>
-                                {renderMessageContent(msg.content)}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1 mx-1">
-                                {formatTime(msg.timestamp)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    
-                    {/* Typing indicator */}
-                    {isTyping && (
-                      <div className="flex justify-start">
-                        <div className="flex gap-3 max-w-[80%]">
-                          <Avatar className="h-8 w-8 bg-primary">
-                            <Bot className="h-5 w-5" />
-                          </Avatar>
-                          <div>
-                            <div className="rounded-lg px-4 py-3 text-sm bg-muted">
-                              <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
-                                <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-150"></div>
-                                <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-300"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </ScrollArea>
-              
-              {/* Message input */}
-              <div className="p-4 border-t">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Ask me anything about Amazon PPC..."
-                    className="resize-none min-h-[3rem]"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                  />
-                  <Button 
-                    onClick={handleSendMessage}
-                    disabled={!message.trim() || isTyping}
-                    className="h-auto"
-                  >
-                    {isTyping ? <RotateCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
-                <div className="mt-2 flex justify-between items-center text-xs text-muted-foreground">
-                  <div>
-                    <span>Press Enter to send, Shift+Enter for new line</span>
-                  </div>
-                  <div>
-                    <Badge variant="outline">
-                      Using {models.find((m: AiModel) => m.id === provider)?.name || provider}
-                    </Badge>
-                  </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-zinc-500 text-lg">
+                  Select or start a conversation to begin chatting.
                 </div>
-              </div>
+              )}
+              {/* Input Box */}
+              <form
+                className="flex items-center gap-2 p-3 border-t bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                onSubmit={e => { e.preventDefault(); handleSendMessage(); }}
+              >
+                <Input
+                  className="flex-1 rounded-full bg-orange-50 dark:bg-zinc-800 border-orange-200 dark:border-zinc-700 focus:ring-orange-400 dark:focus:ring-orange-700 text-zinc-900 dark:text-zinc-100 placeholder:text-orange-400 dark:placeholder:text-orange-300"
+                  placeholder="Ask about Amazon PPC..."
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  disabled={isTyping}
+                  autoFocus
+                />
+                <Button
+                  type="submit"
+                  className="rounded-full bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-900 text-white shadow-md hover:scale-105"
+                  disabled={isTyping || !message.trim()}
+                >
+                  <Send size={18} />
+                </Button>
+              </form>
             </div>
           </div>
+          {/* AI Model Settings Dialog */}
+          <Dialog open={showModelSelector} onOpenChange={setShowModelSelector}>
+            <DialogContent className="sm:max-w-[500px] bg-white dark:bg-zinc-900 border dark:border-zinc-800" aria-describedby="model-settings-desc">
+              <DialogTitle className="dark:text-zinc-100">AI Model Settings</DialogTitle>
+              <DialogDescription id="model-settings-desc" className="dark:text-zinc-400">
+                Choose your preferred AI provider and model for chat responses.
+              </DialogDescription>
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1 dark:text-zinc-200">Provider</label>
+                <select
+                  className="w-full border rounded px-2 py-1 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-orange-200 dark:border-zinc-700"
+                  value={selectedProvider}
+                  disabled
+                >
+                  <option value="gemini">Gemini</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1 dark:text-zinc-200">Model</label>
+                <select
+                  className="w-full border rounded px-2 py-1 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-orange-200 dark:border-zinc-700"
+                  value={selectedModel}
+                  disabled
+                >
+                  <option value={GEMINI_DEFAULT_MODEL}>Gemini 1.5 Flash (Recommended)</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1 dark:text-zinc-200">System Prompt</label>
+                <textarea
+                  className="w-full border rounded px-2 py-1 min-h-[60px] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-orange-200 dark:border-zinc-700"
+                  value={systemPrompt}
+                  onChange={e => setSystemPrompt(e.target.value)}
+                  placeholder="Customize the chatbot's persona and behavior (optional)"
+                />
+                <div className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                  This prompt controls the chatbot's role and expertise. Leave blank for the default Amazon PPC & DSP assistant.
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button onClick={() => setShowModelSelector(false)} type="button">Close</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          {renderRenameDialog()}
         </Card>
       )}
     </div>
